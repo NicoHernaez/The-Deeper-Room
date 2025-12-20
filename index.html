@@ -2,24 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Deeper Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-deep: #0a0a0a;
-            --bg-card: #111111;
-            --bg-input: #1a1a1a;
-            --text-primary: #e8e4df;
-            --text-secondary: #a09a92;
-            --text-muted: #6b665f;
-            --accent-gold: #c9a962;
-            --accent-gold-dim: #8a7543;
-            --border-subtle: #2a2a2a;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -27,39 +15,24 @@
         }
 
         body {
-            font-family: 'Raleway', sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
+            font-family: 'Raleway', Arial, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 1.5rem;
             line-height: 1.7;
             font-weight: 300;
-        }
-
-        /* Subtle background texture */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(ellipse at 20% 80%, rgba(201, 169, 98, 0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(201, 169, 98, 0.02) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
             max-width: 600px;
             width: 100%;
             position: relative;
-            z-index: 1;
         }
 
         /* ENTRADA */
@@ -74,19 +47,19 @@
         }
 
         .logo {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2.5rem;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 2rem;
             font-weight: 300;
-            letter-spacing: 0.3em;
-            color: var(--text-primary);
+            letter-spacing: 0.25em;
+            color: #ffffff;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
         }
 
         .tagline {
             font-size: 0.85rem;
-            color: var(--text-muted);
-            letter-spacing: 0.15em;
+            color: #999999;
+            letter-spacing: 0.1em;
             margin-bottom: 3rem;
             font-style: italic;
         }
@@ -98,7 +71,7 @@
         .input-group label {
             display: block;
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            color: #bbbbbb;
             letter-spacing: 0.1em;
             margin-bottom: 0.75rem;
             text-transform: uppercase;
@@ -108,51 +81,47 @@
             width: 100%;
             max-width: 300px;
             padding: 1rem 1.25rem;
-            font-family: 'Raleway', sans-serif;
+            font-family: 'Raleway', Arial, sans-serif;
             font-size: 1rem;
             font-weight: 300;
-            background: var(--bg-input);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 0;
+            color: #ffffff;
             text-align: center;
             letter-spacing: 0.05em;
-            transition: all 0.3s ease;
         }
 
         .input-nombre:focus {
             outline: none;
-            border-color: var(--accent-gold-dim);
-            box-shadow: 0 0 20px rgba(201, 169, 98, 0.1);
+            border-color: #c9a962;
         }
 
         .input-nombre::placeholder {
-            color: var(--text-muted);
+            color: #666666;
         }
 
         .btn-entrar {
             margin-top: 1rem;
             padding: 1rem 3rem;
-            font-family: 'Raleway', sans-serif;
+            font-family: 'Raleway', Arial, sans-serif;
             font-size: 0.85rem;
             font-weight: 400;
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            background: transparent;
-            border: 1px solid var(--accent-gold-dim);
-            color: var(--accent-gold);
+            background-color: transparent;
+            border: 1px solid #c9a962;
+            color: #c9a962;
             cursor: pointer;
-            transition: all 0.4s ease;
         }
 
-        .btn-entrar:hover {
-            background: var(--accent-gold);
-            color: var(--bg-deep);
-            box-shadow: 0 0 30px rgba(201, 169, 98, 0.2);
+        .btn-entrar:active {
+            background-color: #c9a962;
+            color: #080808;
         }
 
         .btn-entrar:disabled {
             opacity: 0.3;
-            cursor: not-allowed;
         }
 
         /* LOBBY */
@@ -162,16 +131,12 @@
         }
 
         .mensaje-sofia {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem;
-            line-height: 2;
-            color: var(--text-primary);
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: #ffffff;
             margin-bottom: 2.5rem;
             white-space: pre-line;
-        }
-
-        .mensaje-sofia .nombre-highlight {
-            color: var(--accent-gold);
         }
 
         .opciones {
@@ -181,84 +146,64 @@
         }
 
         .btn-opcion {
-            padding: 1.5rem 2rem;
-            font-family: 'Cormorant Garamond', serif;
+            padding: 1.25rem 1.5rem;
+            font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 1.1rem;
             font-weight: 400;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
+            background-color: #111111;
+            border: 1px solid #333333;
+            border-left: 3px solid #c9a962;
+            color: #ffffff;
             cursor: pointer;
             text-align: left;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
         }
 
-        .btn-opcion::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 3px;
-            background: var(--accent-gold);
-            transform: scaleY(0);
-            transition: transform 0.3s ease;
-        }
-
-        .btn-opcion:hover {
-            border-color: var(--accent-gold-dim);
-            padding-left: 2.5rem;
-        }
-
-        .btn-opcion:hover::before {
-            transform: scaleY(1);
+        .btn-opcion:active {
+            background-color: #1a1a1a;
         }
 
         .btn-opcion-titulo {
             display: block;
             font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: var(--accent-gold);
+            margin-bottom: 0.4rem;
+            color: #c9a962;
             letter-spacing: 0.05em;
         }
 
         .btn-opcion-desc {
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.85rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.8rem;
             font-weight: 300;
-            color: var(--text-secondary);
+            color: #aaaaaa;
             line-height: 1.5;
         }
 
         /* CHAT */
         #chat {
             display: none;
-            animation: fadeIn 1s ease-out;
-            height: 80vh;
-            max-height: 700px;
-            display: none;
             flex-direction: column;
+            height: 85vh;
+            max-height: 750px;
+            animation: fadeIn 1s ease-out;
         }
 
         .chat-header {
             text-align: center;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-subtle);
-            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333333;
+            margin-bottom: 1rem;
         }
 
         .chat-header-titulo {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.5rem;
-            color: var(--accent-gold);
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #c9a962;
             letter-spacing: 0.1em;
         }
 
         .chat-header-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            font-size: 0.7rem;
+            color: #888888;
             letter-spacing: 0.15em;
             text-transform: uppercase;
             margin-top: 0.25rem;
@@ -268,23 +213,12 @@
             flex: 1;
             overflow-y: auto;
             padding-right: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .chat-mensajes::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .chat-mensajes::-webkit-scrollbar-track {
-            background: var(--bg-card);
-        }
-
-        .chat-mensajes::-webkit-scrollbar-thumb {
-            background: var(--border-subtle);
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
         }
 
         .mensaje {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             animation: mensajeFade 0.5s ease-out;
         }
 
@@ -294,85 +228,78 @@
         }
 
         .mensaje-personaje {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.1rem;
-            line-height: 1.9;
-            color: var(--text-primary);
-            padding: 1.25rem;
-            background: var(--bg-card);
-            border-left: 2px solid var(--accent-gold-dim);
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #ffffff;
+            padding: 1rem;
+            background-color: #111111;
+            border-left: 2px solid #c9a962;
         }
 
         .mensaje-usuario {
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: var(--text-secondary);
-            padding: 1rem 1.25rem;
-            background: transparent;
-            border-left: 2px solid var(--border-subtle);
-            margin-left: 2rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #cccccc;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+            border-left: 2px solid #444444;
+            margin-left: 1rem;
         }
 
         .chat-input-container {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             padding-top: 1rem;
-            border-top: 1px solid var(--border-subtle);
+            border-top: 1px solid #333333;
         }
 
         .chat-input {
             flex: 1;
-            padding: 1rem;
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.95rem;
+            padding: 0.9rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 1rem;
             font-weight: 300;
-            background: var(--bg-input);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 0;
+            color: #ffffff;
             resize: none;
-            min-height: 50px;
-            max-height: 120px;
-            transition: border-color 0.3s ease;
+            min-height: 48px;
+            max-height: 100px;
         }
 
         .chat-input:focus {
             outline: none;
-            border-color: var(--accent-gold-dim);
+            border-color: #c9a962;
         }
 
         .chat-input::placeholder {
-            color: var(--text-muted);
+            color: #666666;
         }
 
         .btn-enviar {
-            padding: 1rem 1.5rem;
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.8rem;
+            padding: 0.9rem 1.25rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.75rem;
             font-weight: 400;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            background: var(--accent-gold-dim);
+            background-color: #c9a962;
             border: none;
-            color: var(--bg-deep);
+            color: #080808;
             cursor: pointer;
-            transition: all 0.3s ease;
             align-self: flex-end;
-        }
-
-        .btn-enviar:hover {
-            background: var(--accent-gold);
         }
 
         .btn-enviar:disabled {
             opacity: 0.3;
-            cursor: not-allowed;
         }
 
         /* Loading */
         .loading {
-            display: inline-block;
-            color: var(--text-muted);
+            color: #888888;
             font-style: italic;
         }
 
@@ -390,47 +317,29 @@
         /* Volver */
         .btn-volver {
             position: fixed;
-            top: 2rem;
-            left: 2rem;
-            font-family: 'Raleway', sans-serif;
+            top: 1.5rem;
+            left: 1.5rem;
+            font-family: 'Raleway', Arial, sans-serif;
             font-size: 0.75rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: var(--text-muted);
+            color: #888888;
             background: none;
             border: none;
             cursor: pointer;
-            transition: color 0.3s ease;
             z-index: 10;
-        }
-
-        .btn-volver:hover {
-            color: var(--text-secondary);
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            body {
-                padding: 1.5rem;
-            }
-
-            .logo {
-                font-size: 1.8rem;
-                letter-spacing: 0.2em;
-            }
-
-            .mensaje-sofia {
-                font-size: 1.05rem;
-            }
-
-            .btn-volver {
-                top: 1rem;
-                left: 1rem;
-            }
+        /* Error */
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -449,6 +358,7 @@
             </div>
             
             <button class="btn-entrar" id="btnEntrar" onclick="entrar()">Entrar</button>
+            <div id="errorEntrada" class="error-msg hidden"></div>
         </div>
 
         <!-- LOBBY -->
@@ -463,7 +373,7 @@
                 
                 <button class="btn-opcion" onclick="elegirDestino('viajero')">
                     <span class="btn-opcion-titulo">The Gallery</span>
-                    <span class="btn-opcion-desc">Donde el tiempo y los lugares despliegan sus relatos con El Viajero del Tiempo</span>
+                    <span class="btn-opcion-desc">Donde el tiempo y los lugares despliegan sus relatos</span>
                 </button>
             </div>
         </div>
@@ -505,6 +415,7 @@
         const lobby = document.getElementById('lobby');
         const chat = document.getElementById('chat');
         const btnVolver = document.querySelector('.btn-volver');
+        const errorEntrada = document.getElementById('errorEntrada');
 
         // Entrada
         document.getElementById('inputNombre').addEventListener('keydown', (e) => {
@@ -513,14 +424,17 @@
 
         document.getElementById('inputNombre').addEventListener('input', (e) => {
             document.getElementById('btnEntrar').disabled = e.target.value.trim() === '';
+            errorEntrada.classList.add('hidden');
         });
 
         async function entrar() {
             nombreUsuario = document.getElementById('inputNombre').value.trim();
             if (!nombreUsuario) return;
 
-            document.getElementById('btnEntrar').disabled = true;
-            document.getElementById('btnEntrar').textContent = 'Entrando...';
+            const btn = document.getElementById('btnEntrar');
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+            errorEntrada.classList.add('hidden');
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -533,28 +447,33 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error('Error de servidor');
+                }
+
                 const data = await response.json();
                 
-                // Mostrar mensaje de Sofía
-                document.getElementById('mensajeSofia').innerHTML = formatearMensaje(data.respuesta);
-                
-                // Transición
-                entrada.classList.add('hidden');
-                lobby.classList.remove('hidden');
-                lobby.style.display = 'block';
+                if (data.respuesta) {
+                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(data.respuesta);
+                    entrada.classList.add('hidden');
+                    lobby.classList.remove('hidden');
+                    lobby.style.display = 'block';
+                } else {
+                    throw new Error('Sin respuesta');
+                }
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error de conexión. Por favor intente nuevamente.');
-                document.getElementById('btnEntrar').disabled = false;
-                document.getElementById('btnEntrar').textContent = 'Entrar';
+                errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
+                errorEntrada.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
             }
         }
 
         async function elegirDestino(destino) {
             destinoActual = destino;
             
-            // Configurar header del chat
             if (destino === 'socrates') {
                 document.getElementById('chatTitulo').textContent = 'The Study';
                 document.getElementById('chatSub').textContent = 'con Sócrates';
@@ -563,44 +482,36 @@
                 document.getElementById('chatSub').textContent = 'con El Viajero del Tiempo';
             }
 
-            // Transición
             lobby.style.display = 'none';
             chat.style.display = 'flex';
             btnVolver.classList.remove('hidden');
 
-            // Limpiar chat
             document.getElementById('chatMensajes').innerHTML = '';
-
-            // Mensaje inicial
             agregarMensajeLoading();
 
             try {
-                let response;
+                let body;
                 
                 if (destino === 'socrates') {
-                    // Iniciar sesión con Sócrates
-                    response = await fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            destino: 'socrates',
-                            accion: 'libre',
-                            nombre: nombreUsuario,
-                            mensaje: 'Hola, acabo de entrar'
-                        })
-                    });
+                    body = {
+                        destino: 'socrates',
+                        accion: 'libre',
+                        nombre: nombreUsuario,
+                        mensaje: 'Hola, acabo de entrar'
+                    };
                 } else {
-                    // Iniciar con El Viajero
-                    response = await fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            destino: 'viajero',
-                            nombre: nombreUsuario,
-                            mensaje: 'Hola, acabo de entrar'
-                        })
-                    });
+                    body = {
+                        destino: 'viajero',
+                        nombre: nombreUsuario,
+                        mensaje: 'Hola, acabo de entrar'
+                    };
                 }
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
 
                 const data = await response.json();
                 quitarMensajeLoading();
@@ -609,12 +520,12 @@
                     sesionId = data.sesion_id;
                 }
                 
-                agregarMensajePersonaje(data.respuesta);
+                agregarMensajePersonaje(data.respuesta || 'Bienvenido.');
 
             } catch (error) {
                 console.error('Error:', error);
                 quitarMensajeLoading();
-                agregarMensajePersonaje('Disculpe, hubo un problema de conexión. Por favor intente nuevamente.');
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
             }
         }
 
@@ -627,11 +538,9 @@
             esperandoRespuesta = true;
             document.getElementById('btnEnviar').disabled = true;
             
-            // Mostrar mensaje del usuario
             agregarMensajeUsuario(mensaje);
             input.value = '';
 
-            // Mostrar loading
             agregarMensajeLoading();
 
             try {
@@ -657,12 +566,12 @@
 
                 const data = await response.json();
                 quitarMensajeLoading();
-                agregarMensajePersonaje(data.respuesta);
+                agregarMensajePersonaje(data.respuesta || 'Disculpe, no pude procesar su mensaje.');
 
             } catch (error) {
                 console.error('Error:', error);
                 quitarMensajeLoading();
-                agregarMensajePersonaje('Disculpe, hubo un problema de conexión. Por favor intente nuevamente.');
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
             }
 
             esperandoRespuesta = false;
@@ -712,9 +621,8 @@
 
         function formatearMensaje(texto) {
             if (!texto) return '';
-            // Convertir [...] a pausa visual
             return texto
-                .replace(/\[...\]/g, '<span style="opacity: 0.4; margin: 0 0.5em;">···</span>')
+                .replace(/\[...\]/g, '<span style="opacity: 0.5; margin: 0 0.3em;">···</span>')
                 .replace(/\n\n/g, '<br><br>')
                 .replace(/\n/g, '<br>');
         }
