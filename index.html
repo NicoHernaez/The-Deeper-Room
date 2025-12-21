@@ -1,137 +1,656 @@
-<script>
-  const WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>The Deeper Room — Voz</title>
 
-  const VOICES = {
-    sofia: 'KODfcDcuOf5M4axjGlMx',
-    socrates: 'ki6kmf0TLJkBQr3Vt9dt',
-    viajero: 'ML5mQsk0B3e4gEH6KBKz'
-  };
+    <!-- Estilos básicos (tu archivo ya trae estilos; mantengo estructura original) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-  let nombreUsuario = '';
-  let destinoActual = '';
-  let esperandoRespuesta = false;
-  let vozActiva = true;
-  let audioActual = null;
+    <style>
+        /* ====== ESTILOS (los tuyos originales o similares) ====== */
+        body {
+            margin: 0;
+            font-family: Inter, sans-serif;
+            background: #0B0D10;
+            color: #EAECEF;
+        }
 
-  // ✅ una sesión por destino (evita mezcla)
-  let sesionIds = { socrates: null, viajero: null };
+        .hidden { display: none !important; }
 
-  // ✅ id estable del usuario en ESTE navegador (para que el backend pueda separar por persona)
-  const clientUserId = localStorage.getItem('tdr_user_id') || (() => {
-    const id = (crypto?.randomUUID?.() || String(Date.now()) + Math.random());
-    localStorage.setItem('tdr_user_id', id);
-    return id;
-  })();
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px;
+        }
 
-  async function elegirDestino(destino) {
-    destinoActual = destino;
+        /* Entrada */
+        .entrada {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            background: rgba(255,255,255,.02);
+        }
 
-    // ... (tu UI igual)
+        .entrada h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
 
-    document.getElementById('chatMensajes').innerHTML = '';
-    agregarMensajeLoading();
+        .entrada p {
+            margin: 0;
+            color: rgba(255,255,255,.75);
+            line-height: 1.5;
+        }
 
-    try {
-      let body = {
-        destino,
-        nombre: nombreUsuario,
-        mensaje: 'Hola, acabo de entrar',
-        user_id: clientUserId,           // ✅ nuevo
-      };
+        .input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color: #fff;
+            outline: none;
+            font-size: 16px;
+        }
 
-      if (destino === 'socrates') body.accion = 'libre';
+        .btn {
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 0;
+            background: #2A65FF;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-      // ✅ usa sesión correcta por destino
-      if (sesionIds[destino]) body.sesion_id = sesionIds[destino];
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+        .error {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 80, 80, .35);
+            background: rgba(255, 80, 80, .08);
+            color: rgba(255,255,255,.9);
+            font-size: 14px;
+        }
 
-      const data = await response.json();
+        /* Lobby */
+        .lobby {
+            display: none;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            background: rgba(255,255,255,.02);
+        }
 
-      // ✅ guarda sesión del destino correcto
-      if (data.sesion_id) sesionIds[destino] = data.sesion_id;
+        .lobby-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
 
-      const respuestaTexto = data.respuesta || 'Bienvenido.';
+        .lobby-title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-      quitarMensajeLoading();
-      agregarMensajePersonaje(respuestaTexto);
+        .lobby-title h2 {
+            margin: 0;
+            font-size: 18px;
+        }
 
-    const limpio = respuestaTexto
-  .replace(/\[...\]/g, '')
-  .replace(/\s+/g, ' ')
-  .trim()
-  .slice(0, 800); // ✅ límite seguro para que ElevenLabs no falle
+        .lobby-title span {
+            color: rgba(255,255,255,.65);
+            font-size: 14px;
+        }
 
-hablar(limpio, destinoActual === 'socrates' ? 'socrates' : 'viajero');
+        .lobby-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 16px;
+        }
 
+        .card {
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.03);
+            cursor: pointer;
+            transition: transform .1s ease;
+        }
+        .card:hover { transform: translateY(-1px); }
 
-    } catch (e) {
-      quitarMensajeLoading();
-      agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
-    }
-  }
+        .card h3 {
+            margin: 0 0 6px 0;
+            font-size: 16px;
+        }
 
-  async function enviarMensaje() {
-    const input = document.getElementById('chatInput');
-    const mensaje = input.value.trim();
-    if (!mensaje || esperandoRespuesta) return;
+        .card p {
+            margin: 0;
+            color: rgba(255,255,255,.7);
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
-    esperandoRespuesta = true;
-    document.getElementById('btnEnviar').disabled = true;
+        /* Chat */
+        .chat {
+            display: none;
+            padding: 0;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255,255,255,.02);
+        }
 
-    agregarMensajeUsuario(mensaje);
-    input.value = '';
-    agregarMensajeLoading();
+        .chat-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,.02);
+        }
 
-    try {
-      const body = {
-        destino: destinoActual,
-        nombre: nombreUsuario,
-        mensaje,
-        user_id: clientUserId,                 // ✅ nuevo
-      };
+        .chat-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
 
-      if (destinoActual === 'socrates') body.accion = 'libre';
+        .chat-header-title {
+            font-weight: 600;
+        }
 
-      // ✅ sesión por destino
-      if (sesionIds[destinoActual]) body.sesion_id = sesionIds[destinoActual];
+        .chat-header-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,.65);
+        }
 
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+        .chat-mensajes {
+            padding: 16px;
+            height: 55vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-      const data = await response.json();
+        .msg {
+            max-width: 82%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.03);
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
 
-      // ✅ refresca sesión por destino
-      if (data.sesion_id) sesionIds[destinoActual] = data.sesion_id;
+        .msg.usuario {
+            margin-left: auto;
+            background: rgba(42,101,255,.12);
+            border-color: rgba(42,101,255,.25);
+        }
 
-      const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
-      quitarMensajeLoading();
-      agregarMensajePersonaje(respuestaTexto);
+        .msg.personaje {
+            margin-right: auto;
+        }
 
-      hablar(respuestaTexto.replace(/\[...\]/g, ''), destinoActual === 'socrates' ? 'socrates' : 'viajero');
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.02);
+        }
 
-    } catch (e) {
-      quitarMensajeLoading();
-      agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
-    }
+        .chat-input {
+            width: 100%;
+            resize: none;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.03);
+            color: #fff;
+            outline: none;
+            font-size: 15px;
+        }
 
-    esperandoRespuesta = false;
-    document.getElementById('btnEnviar').disabled = false;
-    input.focus();
-  }
+        .btn-enviar {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 0;
+            background: #2A65FF;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-  function volverAlLobby() {
-    if (audioActual) { audioActual.pause(); audioActual = null; }
-    chat.style.display = 'none';
-    lobby.style.display = 'block';
-    btnVolver.classList.add('hidden');
-    // ✅ NO resetees sesionIds acá, así si vuelve al mismo personaje mantiene continuidad
-  }
-</script>
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toggle {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 14px;
+            color: rgba(255,255,255,.75);
+        }
+
+        .btn-sec {
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.03);
+            color: rgba(255,255,255,.9);
+            cursor: pointer;
+        }
+
+        @media (max-width: 720px) {
+            .lobby-grid { grid-template-columns: 1fr; }
+            .msg { max-width: 92%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Entrada -->
+        <div class="entrada" id="entrada">
+            <h1>The Deeper Room</h1>
+            <p>Ingrese su nombre para entrar. Sofía lo recibirá.</p>
+
+            <input id="nombre" class="input" placeholder="Su nombre (ej: Nico)" />
+            <button class="btn" id="btnEntrar" onclick="entrar()">Entrar</button>
+
+            <div class="error hidden" id="errorEntrada"></div>
+
+            <div style="margin-top:10px; color:rgba(255,255,255,.75); font-size:14px;">
+                <div><strong>Sofía:</strong> <span id="mensajeSofia"></span></div>
+            </div>
+        </div>
+
+        <!-- Lobby -->
+        <div class="lobby hidden" id="lobby">
+            <div class="lobby-header">
+                <div class="lobby-title">
+                    <h2>Bienvenido, <span id="nombreLobby"></span></h2>
+                    <span>Elija a quién visitar.</span>
+                </div>
+
+                <div class="toolbar">
+                    <div class="toggle">
+                        <label for="toggleVoz">Voz</label>
+                        <input type="checkbox" id="toggleVoz" checked onchange="toggleVoz()" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="lobby-grid">
+                <div class="card" onclick="elegirDestino('socrates')">
+                    <h3>El Estudio (Sócrates)</h3>
+                    <p>Conversación profunda. Ritmo pausado. Una pregunta a la vez.</p>
+                </div>
+
+                <div class="card" onclick="elegirDestino('viajero')">
+                    <h3>La Galería (El Viajero)</h3>
+                    <p>Un guía elegante. Historia, ciudades, recorridos con alma.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat" id="chat">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <div class="chat-header-title" id="chatTitle">El Estudio</div>
+                    <div class="chat-header-sub" id="chatSub">con Sócrates</div>
+                </div>
+
+                <div class="toolbar">
+                    <button class="btn-sec" onclick="volverAlLobby()">Volver</button>
+                    <button class="btn-sec" onclick="detenerAudio()">Detener voz</button>
+                </div>
+            </div>
+
+            <div class="chat-mensajes" id="chatMensajes"></div>
+
+            <div class="chat-input-container">
+                <textarea
+                    class="chat-input"
+                    id="chatInput"
+                    placeholder="Escriba aquí..."
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+                <button class="btn-enviar" id="btnEnviar" onclick="enviarMensaje()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === CONFIG ===
+        // ⚠️ Si tu webhook es otro, cambiá SOLO esta línea:
+        const WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room';
+        const VOZ_WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/voz-tdr';
+
+        // ✅ Voces finales (las que me pasaste)
+        const VOICES = {
+            sofia: 'KODfcDcuOf5M4axjGlMx',
+            socrates: 'ki6kmf0TLJkBQr3Vt9dt',
+            viajero: 'ML5mQsk0B3e4gEH6KBKz'
+        };
+
+        // Estado
+        let nombreUsuario = '';
+        let destinoActual = '';
+        // ✅ una sesión por destino (evita mezclar historial entre Sócrates/Viajero)
+        let sesionIds = { socrates: null, viajero: null, recepcion: null };
+        let esperandoRespuesta = false;
+        let vozActiva = true;
+        let audioActual = null;
+
+        // ✅ id estable del usuario en este navegador (para separar historial por persona)
+        const clientUserId = localStorage.getItem('tdr_user_id') || (() => {
+            const id = (crypto?.randomUUID?.() || String(Date.now()) + Math.random());
+            localStorage.setItem('tdr_user_id', id);
+            return id;
+        })();
+
+        // Elementos
+        const entrada = document.getElementById('entrada');
+        const lobby = document.getElementById('lobby');
+        const chat = document.getElementById('chat');
+        const errorEntrada = document.getElementById('errorEntrada');
+
+        function formatearMensaje(texto) {
+            return (texto || '').replace(/\n/g, '<br/>');
+        }
+
+        function toggleVoz() {
+            vozActiva = document.getElementById('toggleVoz').checked;
+            if (!vozActiva) detenerAudio();
+        }
+
+        function detenerAudio() {
+            if (audioActual) {
+                try { audioActual.pause(); } catch(e) {}
+                audioActual = null;
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                enviarMensaje();
+            }
+        }
+
+        function agregarMensajeUsuario(texto) {
+            const cont = document.getElementById('chatMensajes');
+            const div = document.createElement('div');
+            div.className = 'msg usuario';
+            div.textContent = texto;
+            cont.appendChild(div);
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function agregarMensajePersonaje(texto) {
+            const cont = document.getElementById('chatMensajes');
+            const div = document.createElement('div');
+            div.className = 'msg personaje';
+            div.textContent = texto || '';
+            cont.appendChild(div);
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function agregarMensajeLoading() {
+            const cont = document.getElementById('chatMensajes');
+            const div = document.createElement('div');
+            div.className = 'msg personaje';
+            div.id = 'loadingMsg';
+            div.textContent = '...';
+            cont.appendChild(div);
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function quitarMensajeLoading() {
+            const div = document.getElementById('loadingMsg');
+            if (div) div.remove();
+        }
+
+        // ✅ Limpieza + recorte para que ElevenLabs no falle con textos largos o raros
+        function limpiarParaVoz(texto, maxLen = 800) {
+            return (texto || '')
+                .replace(/\[...\]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, maxLen);
+        }
+
+        // === VOZ (pide audio a n8n "voz-tdr" y reproduce) ===
+        async function hablar(texto, vozKey) {
+            if (!vozActiva) return;
+
+            const voice_id = VOICES[vozKey];
+            if (!voice_id) return;
+
+            const limpio = limpiarParaVoz(texto, vozKey === 'sofia' ? 500 : 800);
+            if (!limpio) return;
+
+            try {
+                detenerAudio();
+
+                const resp = await fetch(VOZ_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        voice_id,
+                        text: limpio
+                    })
+                });
+
+                if (!resp.ok) {
+                    // Si falla la voz, no frenamos el chat
+                    return;
+                }
+
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                audioActual = new Audio(url);
+                audioActual.play().catch(() => {});
+            } catch (e) {
+                // silencioso
+            }
+        }
+
+        // === ENTRADA ===
+        async function entrar() {
+            const nombre = document.getElementById('nombre').value.trim();
+            if (!nombre) {
+                errorEntrada.textContent = 'Por favor ingrese su nombre.';
+                errorEntrada.classList.remove('hidden');
+                return;
+            }
+
+            nombreUsuario = nombre;
+            errorEntrada.classList.add('hidden');
+
+            const btn = document.getElementById('btnEntrar');
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        destino: 'recepcion',
+                        nombre: nombreUsuario,
+                        user_id: clientUserId,
+                        contexto: 'primera_vez',
+                        sesion_id: sesionIds.recepcion
+                    })
+                });
+
+                if (!response.ok) throw new Error('Error de servidor');
+
+                const data = await response.json();
+                if (data.sesion_id) sesionIds.recepcion = data.sesion_id;
+
+                // Si backend no devuelve respuesta, mostramos fallback (para que Sofía "aparezca" sí o sí)
+                const textoSofia = data.respuesta || `Bienvenido, ${nombreUsuario}. Elija a quién visitar.`;
+
+                document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+
+                // mostrar lobby
+                document.getElementById('nombreLobby').textContent = nombreUsuario;
+                entrada.classList.add('hidden');
+                lobby.classList.remove('hidden');
+                lobby.style.display = 'block';
+
+                // hablar Sofía
+                hablar(textoSofia, 'sofia');
+
+            } catch (e) {
+                errorEntrada.textContent = 'No pude conectar con el servidor. Revise el webhook.';
+                errorEntrada.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+
+        // === SELECCIÓN DESTINO ===
+        async function elegirDestino(destino) {
+            destinoActual = destino;
+
+            lobby.style.display = 'none';
+            chat.style.display = 'block';
+
+            const title = document.getElementById('chatTitle');
+            const sub = document.getElementById('chatSub');
+
+            if (destino === 'socrates') {
+                title.textContent = 'El Estudio';
+                sub.textContent = 'con Sócrates';
+            } else {
+                title.textContent = 'La Galería';
+                sub.textContent = 'con El Viajero';
+            }
+
+            document.getElementById('chatMensajes').innerHTML = '';
+            agregarMensajeLoading();
+
+            try {
+                const body = {
+                    destino: destino,
+                    nombre: nombreUsuario,
+                    user_id: clientUserId,
+                    mensaje: 'Hola, acabo de entrar'
+                };
+
+                // ✅ sesión por destino
+                if (sesionIds[destino]) body.sesion_id = sesionIds[destino];
+
+                // Si es socrates libre:
+                if (destino === 'socrates') body.accion = 'libre';
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                // guardar sesion por destino
+                if (data.sesion_id) sesionIds[destino] = data.sesion_id;
+
+                const respuestaTexto = data.respuesta || 'Estoy aquí.';
+                quitarMensajeLoading();
+                agregarMensajePersonaje(respuestaTexto);
+
+                hablar(respuestaTexto, destino === 'socrates' ? 'socrates' : 'viajero');
+
+            } catch (e) {
+                quitarMensajeLoading();
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+            }
+        }
+
+        // === ENVIAR MENSAJE ===
+        async function enviarMensaje() {
+            const input = document.getElementById('chatInput');
+            const mensaje = input.value.trim();
+            if (!mensaje || esperandoRespuesta) return;
+
+            esperandoRespuesta = true;
+            document.getElementById('btnEnviar').disabled = true;
+
+            agregarMensajeUsuario(mensaje);
+            input.value = '';
+            agregarMensajeLoading();
+
+            try {
+                const body = {
+                    destino: destinoActual,
+                    nombre: nombreUsuario,
+                    user_id: clientUserId,
+                    mensaje: mensaje
+                };
+
+                if (sesionIds[destinoActual]) {
+                    body.sesion_id = sesionIds[destinoActual];
+                }
+
+                if (destinoActual === 'socrates') body.accion = 'libre';
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                if (data.sesion_id) sesionIds[destinoActual] = data.sesion_id;
+
+                const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
+                quitarMensajeLoading();
+                agregarMensajePersonaje(respuestaTexto);
+
+                hablar(respuestaTexto, destinoActual === 'socrates' ? 'socrates' : 'viajero');
+
+            } catch (e) {
+                quitarMensajeLoading();
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+            } finally {
+                esperandoRespuesta = false;
+                document.getElementById('btnEnviar').disabled = false;
+                input.focus();
+            }
+        }
+
+        function volverAlLobby() {
+            detenerAudio();
+            chat.style.display = 'none';
+            lobby.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
