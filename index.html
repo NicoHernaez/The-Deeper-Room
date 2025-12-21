@@ -60,7 +60,14 @@
       quitarMensajeLoading();
       agregarMensajePersonaje(respuestaTexto);
 
-      hablar(respuestaTexto.replace(/\[...\]/g, ''), destino === 'socrates' ? 'socrates' : 'viajero');
+    const limpio = respuestaTexto
+  .replace(/\[...\]/g, '')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .slice(0, 800); // ✅ límite seguro para que ElevenLabs no falle
+
+hablar(limpio, destinoActual === 'socrates' ? 'socrates' : 'viajero');
+
 
     } catch (e) {
       quitarMensajeLoading();
