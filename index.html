@@ -1,338 +1,446 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>The Deeper Room — Voz</title>
-
-    <!-- Estilos básicos (tu archivo ya trae estilos; mantengo estructura original) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Deeper Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* ====== ESTILOS (los tuyos originales o similares) ====== */
-        body {
+        * {
             margin: 0;
-            font-family: Inter, sans-serif;
-            background: #0B0D10;
-            color: #EAECEF;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .hidden { display: none !important; }
+        body {
+            font-family: 'Raleway', Arial, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            line-height: 1.7;
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+        }
 
         .container {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-
-        /* Entrada */
-        .entrada {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            padding: 24px;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 14px;
-            background: rgba(255,255,255,.02);
-        }
-
-        .entrada h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .entrada p {
-            margin: 0;
-            color: rgba(255,255,255,.75);
-            line-height: 1.5;
-        }
-
-        .input {
+            max-width: 600px;
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.04);
-            color: #fff;
-            outline: none;
-            font-size: 16px;
+            position: relative;
         }
 
-        .btn {
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 0;
-            background: #2A65FF;
-            color: #fff;
-            font-weight: 600;
+        /* ENTRADA */
+        #entrada {
+            text-align: center;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 0.25em;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: #999999;
+            letter-spacing: 0.1em;
+            margin-bottom: 3rem;
+            font-style: italic;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #bbbbbb;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .input-nombre {
+            width: 100%;
+            max-width: 300px;
+            padding: 1rem 1.25rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 0;
+            color: #ffffff;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .input-nombre:focus {
+            outline: none;
+            border-color: #c9a962;
+        }
+
+        .input-nombre::placeholder {
+            color: #666666;
+        }
+
+        .btn-entrar {
+            margin-top: 1rem;
+            padding: 1rem 3rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            background-color: transparent;
+            border: 1px solid #c9a962;
+            color: #c9a962;
             cursor: pointer;
         }
 
-        .btn:disabled { opacity: .5; cursor: not-allowed; }
-
-        .error {
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 80, 80, .35);
-            background: rgba(255, 80, 80, .08);
-            color: rgba(255,255,255,.9);
-            font-size: 14px;
+        .btn-entrar:active {
+            background-color: #c9a962;
+            color: #080808;
         }
 
-        /* Lobby */
-        .lobby {
+        .btn-entrar:disabled {
+            opacity: 0.3;
+        }
+
+        /* LOBBY */
+        #lobby {
             display: none;
-            padding: 24px;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 14px;
-            background: rgba(255,255,255,.02);
+            animation: fadeIn 1s ease-out;
         }
 
-        .lobby-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 14px;
+        .mensaje-sofia {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: #ffffff;
+            margin-bottom: 2.5rem;
+            white-space: pre-line;
         }
 
-        .lobby-title {
+        .opciones {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 1rem;
         }
 
-        .lobby-title h2 {
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .lobby-title span {
-            color: rgba(255,255,255,.65);
-            font-size: 14px;
-        }
-
-        .lobby-grid {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 16px;
-        }
-
-        .card {
-            padding: 16px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,.08);
-            background: rgba(255,255,255,.03);
+        .btn-opcion {
+            padding: 1.25rem 1.5rem;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            background-color: #111111;
+            border: 1px solid #333333;
+            border-left: 3px solid #c9a962;
+            color: #ffffff;
             cursor: pointer;
-            transition: transform .1s ease;
-        }
-        .card:hover { transform: translateY(-1px); }
-
-        .card h3 {
-            margin: 0 0 6px 0;
-            font-size: 16px;
+            text-align: left;
         }
 
-        .card p {
-            margin: 0;
-            color: rgba(255,255,255,.7);
-            font-size: 14px;
+        .btn-opcion:active {
+            background-color: #1a1a1a;
+        }
+
+        .btn-opcion-titulo {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            color: #c9a962;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-opcion-desc {
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.8rem;
+            font-weight: 300;
+            color: #aaaaaa;
             line-height: 1.5;
         }
 
-        /* Chat */
-        .chat {
+        /* CHAT */
+        #chat {
             display: none;
-            padding: 0;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 14px;
-            overflow: hidden;
-            background: rgba(255,255,255,.02);
+            flex-direction: column;
+            height: 85vh;
+            max-height: 750px;
+            animation: fadeIn 1s ease-out;
         }
 
         .chat-header {
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,.02);
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333333;
+            margin-bottom: 1rem;
         }
 
-        .chat-header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .chat-header-title {
-            font-weight: 600;
+        .chat-header-titulo {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #c9a962;
+            letter-spacing: 0.1em;
         }
 
         .chat-header-sub {
-            font-size: 13px;
-            color: rgba(255,255,255,.65);
+            font-size: 0.7rem;
+            color: #888888;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 0.25rem;
         }
 
         .chat-mensajes {
-            padding: 16px;
-            height: 55vh;
+            flex: 1;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            padding-right: 0.5rem;
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .msg {
-            max-width: 82%;
-            padding: 10px 12px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,.08);
-            background: rgba(255,255,255,.03);
-            line-height: 1.55;
-            white-space: pre-wrap;
+        .mensaje {
+            margin-bottom: 1.25rem;
+            animation: mensajeFade 0.5s ease-out;
         }
 
-        .msg.usuario {
-            margin-left: auto;
-            background: rgba(42,101,255,.12);
-            border-color: rgba(42,101,255,.25);
+        @keyframes mensajeFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .msg.personaje {
-            margin-right: auto;
+        .mensaje-personaje {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #ffffff;
+            padding: 1rem;
+            background-color: #111111;
+            border-left: 2px solid #c9a962;
+        }
+
+        .mensaje-usuario {
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #cccccc;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+            border-left: 2px solid #444444;
+            margin-left: 1rem;
         }
 
         .chat-input-container {
             display: flex;
-            gap: 10px;
-            padding: 12px;
-            border-top: 1px solid rgba(255,255,255,.08);
-            background: rgba(255,255,255,.02);
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid #333333;
         }
 
         .chat-input {
-            width: 100%;
+            flex: 1;
+            padding: 0.9rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 0;
+            color: #ffffff;
             resize: none;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.03);
-            color: #fff;
+            min-height: 48px;
+            max-height: 100px;
+        }
+
+        .chat-input:focus {
             outline: none;
-            font-size: 15px;
+            border-color: #c9a962;
+        }
+
+        .chat-input::placeholder {
+            color: #666666;
         }
 
         .btn-enviar {
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 0;
-            background: #2A65FF;
-            color: #fff;
-            font-weight: 600;
+            padding: 0.9rem 1.25rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background-color: #c9a962;
+            border: none;
+            color: #080808;
             cursor: pointer;
+            align-self: flex-end;
         }
 
-        .toolbar {
+        .btn-enviar:disabled {
+            opacity: 0.3;
+        }
+
+        /* Audio control */
+        .audio-control {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
         }
 
-        .toggle {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-size: 14px;
-            color: rgba(255,255,255,.75);
-        }
-
-        .btn-sec {
-            padding: 8px 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.03);
-            color: rgba(255,255,255,.9);
+        .btn-audio {
+            background: none;
+            border: 1px solid #555;
+            color: #c9a962;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
             cursor: pointer;
+            border-radius: 3px;
         }
 
-        @media (max-width: 720px) {
-            .lobby-grid { grid-template-columns: 1fr; }
-            .msg { max-width: 92%; }
+        .btn-audio:hover {
+            background-color: #1a1a1a;
+        }
+
+        .btn-audio.playing {
+            background-color: #c9a962;
+            color: #080808;
+        }
+
+        /* Loading */
+        .loading {
+            color: #888888;
+            font-style: italic;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Volver */
+        .btn-volver {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #888888;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Voice toggle */
+        .voice-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #888888;
+            background: none;
+            border: 1px solid #444;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 3px;
+        }
+
+        .voice-toggle.active {
+            color: #c9a962;
+            border-color: #c9a962;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Error */
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
         }
     </style>
 </head>
 <body>
+    <button class="btn-volver hidden" onclick="volverAlLobby()">← Volver</button>
+    <button class="voice-toggle active" onclick="toggleVoice()">🔊 Voz ON</button>
+
     <div class="container">
+        <!-- ENTRADA -->
+        <div id="entrada">
+            <h1 class="logo">The Deeper Room</h1>
+            <p class="tagline">Un espacio para quienes todavía piensan profundamente</p>
+            
+            <div class="input-group">
+                <label>Su nombre</label>
+                <input type="text" class="input-nombre" id="inputNombre" placeholder="Ingrese su nombre" autocomplete="off">
+            </div>
+            
+            <button class="btn-entrar" id="btnEntrar" onclick="entrar()">Entrar</button>
+            <div id="errorEntrada" class="error-msg hidden"></div>
+        </div>
 
-        <!-- Entrada -->
-        <div class="entrada" id="entrada">
-            <h1>The Deeper Room</h1>
-            <p>Ingrese su nombre para entrar. Sofía lo recibirá.</p>
-
-            <input id="nombre" class="input" placeholder="Su nombre (ej: Nico)" />
-            <button class="btn" id="btnEntrar" onclick="entrar()">Entrar</button>
-
-            <div class="error hidden" id="errorEntrada"></div>
-
-            <div style="margin-top:10px; color:rgba(255,255,255,.75); font-size:14px;">
-                <div><strong>Sofía:</strong> <span id="mensajeSofia"></span></div>
+        <!-- LOBBY -->
+        <div id="lobby">
+            <div class="mensaje-sofia" id="mensajeSofia"></div>
+            
+            <div class="opciones">
+                <button class="btn-opcion" onclick="elegirDestino('socrates')">
+                    <span class="btn-opcion-titulo">The Study</span>
+                    <span class="btn-opcion-desc">Silencioso y reflexivo, acompañado por Sócrates</span>
+                </button>
+                
+                <button class="btn-opcion" onclick="elegirDestino('viajero')">
+                    <span class="btn-opcion-titulo">The Gallery</span>
+                    <span class="btn-opcion-desc">Donde el tiempo y los lugares despliegan sus relatos</span>
+                </button>
             </div>
         </div>
 
-        <!-- Lobby -->
-        <div class="lobby hidden" id="lobby">
-            <div class="lobby-header">
-                <div class="lobby-title">
-                    <h2>Bienvenido, <span id="nombreLobby"></span></h2>
-                    <span>Elija a quién visitar.</span>
-                </div>
-
-                <div class="toolbar">
-                    <div class="toggle">
-                        <label for="toggleVoz">Voz</label>
-                        <input type="checkbox" id="toggleVoz" checked onchange="toggleVoz()" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="lobby-grid">
-                <div class="card" onclick="elegirDestino('socrates')">
-                    <h3>El Estudio (Sócrates)</h3>
-                    <p>Conversación profunda. Ritmo pausado. Una pregunta a la vez.</p>
-                </div>
-
-                <div class="card" onclick="elegirDestino('viajero')">
-                    <h3>La Galería (El Viajero)</h3>
-                    <p>Un guía elegante. Historia, ciudades, recorridos con alma.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat -->
-        <div class="chat" id="chat">
+        <!-- CHAT -->
+        <div id="chat">
             <div class="chat-header">
-                <div class="chat-header-left">
-                    <div class="chat-header-title" id="chatTitle">El Estudio</div>
-                    <div class="chat-header-sub" id="chatSub">con Sócrates</div>
-                </div>
-
-                <div class="toolbar">
-                    <button class="btn-sec" onclick="volverAlLobby()">Volver</button>
-                    <button class="btn-sec" onclick="detenerAudio()">Detener voz</button>
-                </div>
+                <div class="chat-header-titulo" id="chatTitulo">The Study</div>
+                <div class="chat-header-sub" id="chatSub">con Sócrates</div>
             </div>
-
+            
             <div class="chat-mensajes" id="chatMensajes"></div>
-
+            
             <div class="chat-input-container">
-                <textarea
-                    class="chat-input"
-                    id="chatInput"
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
                     placeholder="Escriba aquí..."
                     rows="1"
                     onkeydown="handleKeyDown(event)"
@@ -343,12 +451,10 @@
     </div>
 
     <script>
-        // === CONFIG ===
-        // ⚠️ Si tu webhook es otro, cambiá SOLO esta línea:
+        // Configuración
         const WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room';
-        const VOZ_WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/voz-tdr';
-
-        // ✅ Voces finales (las que me pasaste)
+        
+        // Voice IDs
         const VOICES = {
             sofia: 'KODfcDcuOf5M4axjGlMx',
             socrates: 'ki6kmf0TLJkBQr3Vt9dt',
@@ -358,39 +464,244 @@
         // Estado
         let nombreUsuario = '';
         let destinoActual = '';
-        // ✅ una sesión por destino (evita mezclar historial entre Sócrates/Viajero)
-        let sesionIds = { socrates: null, viajero: null, recepcion: null };
+        let sesionId = null;
         let esperandoRespuesta = false;
         let vozActiva = true;
         let audioActual = null;
-
-        // ✅ id estable del usuario en este navegador (para separar historial por persona)
-        const clientUserId = localStorage.getItem('tdr_user_id') || (() => {
-            const id = (crypto?.randomUUID?.() || String(Date.now()) + Math.random());
-            localStorage.setItem('tdr_user_id', id);
-            return id;
-        })();
 
         // Elementos
         const entrada = document.getElementById('entrada');
         const lobby = document.getElementById('lobby');
         const chat = document.getElementById('chat');
+        const btnVolver = document.querySelector('.btn-volver');
         const errorEntrada = document.getElementById('errorEntrada');
+        const voiceToggle = document.querySelector('.voice-toggle');
 
-        function formatearMensaje(texto) {
-            return (texto || '').replace(/\n/g, '<br/>');
-        }
-
-        function toggleVoz() {
-            vozActiva = document.getElementById('toggleVoz').checked;
-            if (!vozActiva) detenerAudio();
-        }
-
-        function detenerAudio() {
-            if (audioActual) {
-                try { audioActual.pause(); } catch(e) {}
+        // Toggle de voz
+        function toggleVoice() {
+            vozActiva = !vozActiva;
+            voiceToggle.textContent = vozActiva ? '🔊 Voz ON' : '🔇 Voz OFF';
+            voiceToggle.classList.toggle('active', vozActiva);
+            
+            if (!vozActiva && audioActual) {
+                audioActual.pause();
                 audioActual = null;
             }
+        }
+
+        // Text to Speech via n8n + ElevenLabs (no bloquea UI)
+        async function hablar(texto, personaje) {
+            if (!vozActiva) return;
+            
+            const voiceId = VOICES[personaje] || VOICES.socrates;
+            
+            try {
+                const response = await fetch('https://abuelomatias.app.n8n.cloud/webhook/voz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: texto,
+                        voice_id: voiceId
+                    })
+                });
+
+                if (response.ok) {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    if (audioActual) {
+                        audioActual.pause();
+                    }
+                    
+                    audioActual = new Audio(audioUrl);
+                    audioActual.play();
+                }
+            } catch (error) {
+                console.error('Error de voz:', error);
+            }
+        }
+
+        // Entrada
+        document.getElementById('inputNombre').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') entrar();
+        });
+
+        document.getElementById('inputNombre').addEventListener('input', (e) => {
+            document.getElementById('btnEntrar').disabled = e.target.value.trim() === '';
+            errorEntrada.classList.add('hidden');
+        });
+
+        async function entrar() {
+            nombreUsuario = document.getElementById('inputNombre').value.trim();
+            if (!nombreUsuario) return;
+
+            const btn = document.getElementById('btnEntrar');
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+            errorEntrada.classList.add('hidden');
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        destino: 'recepcion',
+                        nombre: nombreUsuario,
+                        contexto: 'primera_vez'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error de servidor');
+                }
+
+                const data = await response.json();
+                
+                if (data.respuesta) {
+                    const textoSofia = data.respuesta;
+                    
+                    // Mostrar texto primero
+                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+                    entrada.classList.add('hidden');
+                    lobby.classList.remove('hidden');
+                    lobby.style.display = 'block';
+                    
+                    // Reproducir voz (no bloquea)
+                    hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
+                } else {
+                    throw new Error('Sin respuesta');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
+                errorEntrada.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+
+        async function elegirDestino(destino) {
+            destinoActual = destino;
+            
+            if (destino === 'socrates') {
+                document.getElementById('chatTitulo').textContent = 'The Study';
+                document.getElementById('chatSub').textContent = 'con Sócrates';
+            } else {
+                document.getElementById('chatTitulo').textContent = 'The Gallery';
+                document.getElementById('chatSub').textContent = 'con El Viajero del Tiempo';
+            }
+
+            lobby.style.display = 'none';
+            chat.style.display = 'flex';
+            btnVolver.classList.remove('hidden');
+
+            document.getElementById('chatMensajes').innerHTML = '';
+            agregarMensajeLoading();
+
+            try {
+                let body;
+                
+                if (destino === 'socrates') {
+                    body = {
+                        destino: 'socrates',
+                        accion: 'libre',
+                        nombre: nombreUsuario,
+                        mensaje: 'Hola, acabo de entrar'
+                    };
+                } else {
+                    body = {
+                        destino: 'viajero',
+                        nombre: nombreUsuario,
+                        mensaje: 'Hola, acabo de entrar'
+                    };
+                }
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                
+                if (data.sesion_id) {
+                    sesionId = data.sesion_id;
+                }
+                
+                const respuestaTexto = data.respuesta || 'Bienvenido.';
+                
+                // Mostrar texto primero
+                quitarMensajeLoading();
+                agregarMensajePersonaje(respuestaTexto);
+                
+                // Reproducir voz (no bloquea)
+                hablar(respuestaTexto.replace(/\[...\]/g, ''), destino === 'socrates' ? 'socrates' : 'viajero');
+
+            } catch (error) {
+                console.error('Error:', error);
+                quitarMensajeLoading();
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+            }
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById('chatInput');
+            const mensaje = input.value.trim();
+            
+            if (!mensaje || esperandoRespuesta) return;
+
+            esperandoRespuesta = true;
+            document.getElementById('btnEnviar').disabled = true;
+            
+            agregarMensajeUsuario(mensaje);
+            input.value = '';
+
+            agregarMensajeLoading();
+
+            try {
+                const body = {
+                    destino: destinoActual,
+                    nombre: nombreUsuario,
+                    mensaje: mensaje
+                };
+
+                if (destinoActual === 'socrates') {
+                    body.accion = 'libre';
+                }
+
+                if (sesionId) {
+                    body.sesion_id = sesionId;
+                }
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                
+                const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
+                
+                // Mostrar texto primero
+                quitarMensajeLoading();
+                agregarMensajePersonaje(respuestaTexto);
+                
+                // Reproducir voz (no bloquea)
+                hablar(respuestaTexto.replace(/\[...\]/g, ''), destinoActual === 'socrates' ? 'socrates' : 'viajero');
+
+            } catch (error) {
+                console.error('Error:', error);
+                quitarMensajeLoading();
+                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+            }
+
+            esperandoRespuesta = false;
+            document.getElementById('btnEnviar').disabled = false;
+            input.focus();
         }
 
         function handleKeyDown(event) {
@@ -400,257 +711,57 @@
             }
         }
 
-        function agregarMensajeUsuario(texto) {
-            const cont = document.getElementById('chatMensajes');
+        function agregarMensajePersonaje(texto) {
+            const container = document.getElementById('chatMensajes');
             const div = document.createElement('div');
-            div.className = 'msg usuario';
-            div.textContent = texto;
-            cont.appendChild(div);
-            cont.scrollTop = cont.scrollHeight;
+            div.className = 'mensaje mensaje-personaje';
+            div.innerHTML = formatearMensaje(texto);
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
 
-        function agregarMensajePersonaje(texto) {
-            const cont = document.getElementById('chatMensajes');
+        function agregarMensajeUsuario(texto) {
+            const container = document.getElementById('chatMensajes');
             const div = document.createElement('div');
-            div.className = 'msg personaje';
-            div.textContent = texto || '';
-            cont.appendChild(div);
-            cont.scrollTop = cont.scrollHeight;
+            div.className = 'mensaje mensaje-usuario';
+            div.textContent = texto;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
 
         function agregarMensajeLoading() {
-            const cont = document.getElementById('chatMensajes');
+            const container = document.getElementById('chatMensajes');
             const div = document.createElement('div');
-            div.className = 'msg personaje';
-            div.id = 'loadingMsg';
-            div.textContent = '...';
-            cont.appendChild(div);
-            cont.scrollTop = cont.scrollHeight;
+            div.className = 'mensaje mensaje-personaje';
+            div.id = 'mensajeLoading';
+            div.innerHTML = '<span class="loading">Pensando</span>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
 
         function quitarMensajeLoading() {
-            const div = document.getElementById('loadingMsg');
-            if (div) div.remove();
+            const loading = document.getElementById('mensajeLoading');
+            if (loading) loading.remove();
         }
 
-        // ✅ Limpieza + recorte para que ElevenLabs no falle con textos largos o raros
-        function limpiarParaVoz(texto, maxLen = 800) {
-            return (texto || '')
-                .replace(/\[...\]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .slice(0, maxLen);
-        }
-
-        // === VOZ (pide audio a n8n "voz-tdr" y reproduce) ===
-        async function hablar(texto, vozKey) {
-            if (!vozActiva) return;
-
-            const voice_id = VOICES[vozKey];
-            if (!voice_id) return;
-
-            const limpio = limpiarParaVoz(texto, vozKey === 'sofia' ? 500 : 800);
-            if (!limpio) return;
-
-            try {
-                detenerAudio();
-
-                const resp = await fetch(VOZ_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        voice_id,
-                        text: limpio
-                    })
-                });
-
-                if (!resp.ok) {
-                    // Si falla la voz, no frenamos el chat
-                    return;
-                }
-
-                const blob = await resp.blob();
-                const url = URL.createObjectURL(blob);
-                audioActual = new Audio(url);
-                audioActual.play().catch(() => {});
-            } catch (e) {
-                // silencioso
-            }
-        }
-
-        // === ENTRADA ===
-        async function entrar() {
-            const nombre = document.getElementById('nombre').value.trim();
-            if (!nombre) {
-                errorEntrada.textContent = 'Por favor ingrese su nombre.';
-                errorEntrada.classList.remove('hidden');
-                return;
-            }
-
-            nombreUsuario = nombre;
-            errorEntrada.classList.add('hidden');
-
-            const btn = document.getElementById('btnEntrar');
-            btn.disabled = true;
-            btn.textContent = 'Entrando...';
-
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        destino: 'recepcion',
-                        nombre: nombreUsuario,
-                        user_id: clientUserId,
-                        contexto: 'primera_vez',
-                        sesion_id: sesionIds.recepcion
-                    })
-                });
-
-                if (!response.ok) throw new Error('Error de servidor');
-
-                const data = await response.json();
-                if (data.sesion_id) sesionIds.recepcion = data.sesion_id;
-
-                // Si backend no devuelve respuesta, mostramos fallback (para que Sofía "aparezca" sí o sí)
-                const textoSofia = data.respuesta || `Bienvenido, ${nombreUsuario}. Elija a quién visitar.`;
-
-                document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
-
-                // mostrar lobby
-                document.getElementById('nombreLobby').textContent = nombreUsuario;
-                entrada.classList.add('hidden');
-                lobby.classList.remove('hidden');
-                lobby.style.display = 'block';
-
-                // hablar Sofía
-                hablar(textoSofia, 'sofia');
-
-            } catch (e) {
-                errorEntrada.textContent = 'No pude conectar con el servidor. Revise el webhook.';
-                errorEntrada.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Entrar';
-            }
-        }
-
-        // === SELECCIÓN DESTINO ===
-        async function elegirDestino(destino) {
-            destinoActual = destino;
-
-            lobby.style.display = 'none';
-            chat.style.display = 'block';
-
-            const title = document.getElementById('chatTitle');
-            const sub = document.getElementById('chatSub');
-
-            if (destino === 'socrates') {
-                title.textContent = 'El Estudio';
-                sub.textContent = 'con Sócrates';
-            } else {
-                title.textContent = 'La Galería';
-                sub.textContent = 'con El Viajero';
-            }
-
-            document.getElementById('chatMensajes').innerHTML = '';
-            agregarMensajeLoading();
-
-            try {
-                const body = {
-                    destino: destino,
-                    nombre: nombreUsuario,
-                    user_id: clientUserId,
-                    mensaje: 'Hola, acabo de entrar'
-                };
-
-                // ✅ sesión por destino
-                if (sesionIds[destino]) body.sesion_id = sesionIds[destino];
-
-                // Si es socrates libre:
-                if (destino === 'socrates') body.accion = 'libre';
-
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                const data = await response.json();
-
-                // guardar sesion por destino
-                if (data.sesion_id) sesionIds[destino] = data.sesion_id;
-
-                const respuestaTexto = data.respuesta || 'Estoy aquí.';
-                quitarMensajeLoading();
-                agregarMensajePersonaje(respuestaTexto);
-
-                hablar(respuestaTexto, destino === 'socrates' ? 'socrates' : 'viajero');
-
-            } catch (e) {
-                quitarMensajeLoading();
-                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
-            }
-        }
-
-        // === ENVIAR MENSAJE ===
-        async function enviarMensaje() {
-            const input = document.getElementById('chatInput');
-            const mensaje = input.value.trim();
-            if (!mensaje || esperandoRespuesta) return;
-
-            esperandoRespuesta = true;
-            document.getElementById('btnEnviar').disabled = true;
-
-            agregarMensajeUsuario(mensaje);
-            input.value = '';
-            agregarMensajeLoading();
-
-            try {
-                const body = {
-                    destino: destinoActual,
-                    nombre: nombreUsuario,
-                    user_id: clientUserId,
-                    mensaje: mensaje
-                };
-
-                if (sesionIds[destinoActual]) {
-                    body.sesion_id = sesionIds[destinoActual];
-                }
-
-                if (destinoActual === 'socrates') body.accion = 'libre';
-
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                const data = await response.json();
-                if (data.sesion_id) sesionIds[destinoActual] = data.sesion_id;
-
-                const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
-                quitarMensajeLoading();
-                agregarMensajePersonaje(respuestaTexto);
-
-                hablar(respuestaTexto, destinoActual === 'socrates' ? 'socrates' : 'viajero');
-
-            } catch (e) {
-                quitarMensajeLoading();
-                agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
-            } finally {
-                esperandoRespuesta = false;
-                document.getElementById('btnEnviar').disabled = false;
-                input.focus();
-            }
+        function formatearMensaje(texto) {
+            if (!texto) return '';
+            return texto
+                .replace(/\[...\]/g, '<span style="opacity: 0.5; margin: 0 0.3em;">···</span>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
         }
 
         function volverAlLobby() {
-            detenerAudio();
+            if (audioActual) {
+                audioActual.pause();
+                audioActual = null;
+            }
             chat.style.display = 'none';
             lobby.style.display = 'block';
+            btnVolver.classList.add('hidden');
+            sesionId = null;
         }
     </script>
 </body>
 </html>
-
