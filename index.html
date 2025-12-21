@@ -456,9 +456,9 @@
         
         // Voice IDs
         const VOICES = {
-            sofia: 'MWdTXyEuWFeNPcKEw1BL',
-            socrates: 'ML5mQsk0B3e4gEH6KBKz',
-            viajero: 'MemDDbBCnRheyQVCatVJ'
+            sofia: 'KODfcDcuOf5M4axjGlMx',
+            socrates: 'ki6kmf0TLJkBQr3Vt9dt',
+            viajero: 'ML5mQsk0B3e4gEH6KBKz'
         };
 
         // Estado
@@ -490,8 +490,11 @@
         }
 
         // Text to Speech via n8n + ElevenLabs
-        async function hablar(texto, personaje) {
-            if (!vozActiva) return;
+        async function hablar(texto, personaje, callback) {
+            if (!vozActiva) {
+                if (callback) callback();
+                return;
+            }
             
             const voiceId = VOICES[personaje] || VOICES.socrates;
             
@@ -516,10 +519,17 @@
                     }
                     
                     audioActual = new Audio(audioUrl);
+                    
+                    // Ejecutar callback cuando el audio esté listo
+                    if (callback) callback();
+                    
                     audioActual.play();
+                } else {
+                    if (callback) callback();
                 }
             } catch (error) {
                 console.error('Error de voz:', error);
+                if (callback) callback();
             }
         }
 
@@ -560,13 +570,23 @@
                 const data = await response.json();
                 
                 if (data.respuesta) {
-                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(data.respuesta);
-                    entrada.classList.add('hidden');
-                    lobby.classList.remove('hidden');
-                    lobby.style.display = 'block';
+                    const textoSofia = data.respuesta;
                     
-                    // Sofía habla
-                    hablar(data.respuesta.replace(/\[...\]/g, ''), 'sofia');
+                    if (vozActiva) {
+                        // Esperar a que el audio esté listo, luego mostrar texto
+                        hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia', () => {
+                            document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+                            entrada.classList.add('hidden');
+                            lobby.classList.remove('hidden');
+                            lobby.style.display = 'block';
+                        });
+                    } else {
+                        // Sin voz, mostrar directo
+                        document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+                        entrada.classList.add('hidden');
+                        lobby.classList.remove('hidden');
+                        lobby.style.display = 'block';
+                    }
                 } else {
                     throw new Error('Sin respuesta');
                 }
@@ -623,17 +643,24 @@
                 });
 
                 const data = await response.json();
-                quitarMensajeLoading();
                 
                 if (data.sesion_id) {
                     sesionId = data.sesion_id;
                 }
                 
                 const respuestaTexto = data.respuesta || 'Bienvenido.';
-                agregarMensajePersonaje(respuestaTexto);
+                const personajeVoz = destino === 'socrates' ? 'socrates' : 'viajero';
                 
-                // El personaje habla
-                hablar(respuestaTexto.replace(/\[...\]/g, ''), destino === 'socrates' ? 'socrates' : 'viajero');
+                if (vozActiva) {
+                    // Esperar audio, luego mostrar texto
+                    hablar(respuestaTexto.replace(/\[...\]/g, ''), personajeVoz, () => {
+                        quitarMensajeLoading();
+                        agregarMensajePersonaje(respuestaTexto);
+                    });
+                } else {
+                    quitarMensajeLoading();
+                    agregarMensajePersonaje(respuestaTexto);
+                }
 
             } catch (error) {
                 console.error('Error:', error);
@@ -678,23 +705,34 @@
                 });
 
                 const data = await response.json();
-                quitarMensajeLoading();
                 
                 const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
-                agregarMensajePersonaje(respuestaTexto);
+                const personajeVoz = destinoActual === 'socrates' ? 'socrates' : 'viajero';
                 
-                // El personaje habla
-                hablar(respuestaTexto.replace(/\[...\]/g, ''), destinoActual === 'socrates' ? 'socrates' : 'viajero');
+                if (vozActiva) {
+                    hablar(respuestaTexto.replace(/\[...\]/g, ''), personajeVoz, () => {
+                        quitarMensajeLoading();
+                        agregarMensajePersonaje(respuestaTexto);
+                        esperandoRespuesta = false;
+                        document.getElementById('btnEnviar').disabled = false;
+                        input.focus();
+                    });
+                } else {
+                    quitarMensajeLoading();
+                    agregarMensajePersonaje(respuestaTexto);
+                    esperandoRespuesta = false;
+                    document.getElementById('btnEnviar').disabled = false;
+                    input.focus();
+                }
 
             } catch (error) {
                 console.error('Error:', error);
                 quitarMensajeLoading();
                 agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+                esperandoRespuesta = false;
+                document.getElementById('btnEnviar').disabled = false;
+                input.focus();
             }
-
-            esperandoRespuesta = false;
-            document.getElementById('btnEnviar').disabled = false;
-            input.focus();
         }
 
         function handleKeyDown(event) {
