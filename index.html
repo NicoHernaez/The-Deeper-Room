@@ -379,6 +379,28 @@
             border-color: #c9a962;
         }
 
+        /* Session link */
+        .session-link {
+            position: fixed;
+            top: 4.1rem;
+            right: 1.5rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #888888;
+            background: none;
+            border: 1px solid #444;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 3px;
+        }
+
+        .session-link:active {
+            border-color: #c9a962;
+            color: #c9a962;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -395,6 +417,7 @@
 <body>
     <button class="btn-volver hidden" onclick="volverAlLobby()">← Volver</button>
     <button class="voice-toggle active" onclick="toggleVoice()">🔊 Voz ON</button>
+    <button class="session-link" onclick="copiarEnlaceSesion()">🔗 Sesión</button>
 
     <div class="container">
         <!-- ENTRADA -->
@@ -451,17 +474,278 @@
     </div>
 
     <script>
-        // Configuración
-        const WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room';
-        
-        // Voice IDs
-        const VOICES = {
-            sofia: 'KODfcDcuOf5M4axjGlMx',
-            socrates: 'ki6kmf0TLJkBQr3Vt9dt',
-            viajero: 'ML5mQsk0B3e4gEH6KBKz'
+        // =========================
+        // Configuración (dinámica)
+        // =========================
+        // Prioridad:
+        // 1) window.__DEEPER_ROOM_CONFIG__ (inyección)
+        // 2) /config.json (editable sin tocar index.html)
+        // 3) fallback a defaults (para no romper)
+
+        const DEFAULT_CONFIG = {
+            webhookUrl: 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room',
+            ttsWebhookUrl: 'https://abuelomatias.app.n8n.cloud/webhook/voz',
+            voices: {
+                sofia: 'KODfcDcuOf5M4axjGlMx',
+                socrates: 'ki6kmf0TLJkBQr3Vt9dt',
+                viajero: 'ML5mQsk0B3e4gEH6KBKz'
+            },
+            storageKey: 'deeper-room.v1',
+            sessionTtlMs: 1000 * 60 * 60 * 24 * 14 // 14 días
         };
 
+        let APP_CONFIG = { ...DEFAULT_CONFIG };
+
+        function generateUuid() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            // Fallback (suficiente para ids locales, no criptográfico)
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function safeJsonParse(text) {
+            try { return JSON.parse(text); } catch { return null; }
+        }
+
+        function mergeConfig(base, override) {
+            if (!override || typeof override !== 'object') return base;
+            const merged = { ...base, ...override };
+            merged.voices = { ...(base.voices || {}), ...(override.voices || {}) };
+            return merged;
+        }
+
+        function applyQueryConfig(base) {
+            // Permite overrides rápidos por URL sin redeploy:
+            // ?webhookUrl=...&ttsWebhookUrl=...&voiceSofia=...&voiceSocrates=...&voiceViajero=...
+            const url = new URL(window.location.href);
+            const webhookUrl = url.searchParams.get('webhookUrl');
+            const ttsWebhookUrl = url.searchParams.get('ttsWebhookUrl');
+            const voiceSofia = url.searchParams.get('voiceSofia');
+            const voiceSocrates = url.searchParams.get('voiceSocrates');
+            const voiceViajero = url.searchParams.get('voiceViajero');
+
+            const q = {};
+            if (webhookUrl) q.webhookUrl = webhookUrl;
+            if (ttsWebhookUrl) q.ttsWebhookUrl = ttsWebhookUrl;
+            const voices = {};
+            if (voiceSofia) voices.sofia = voiceSofia;
+            if (voiceSocrates) voices.socrates = voiceSocrates;
+            if (voiceViajero) voices.viajero = voiceViajero;
+            if (Object.keys(voices).length) q.voices = voices;
+
+            return mergeConfig(base, q);
+        }
+
+        async function loadConfig() {
+            let cfg = { ...DEFAULT_CONFIG };
+
+            // 1) Inyección global
+            if (window.__DEEPER_ROOM_CONFIG__ && typeof window.__DEEPER_ROOM_CONFIG__ === 'object') {
+                cfg = mergeConfig(cfg, window.__DEEPER_ROOM_CONFIG__);
+            }
+
+            // 2) config.json (si existe)
+            try {
+                const res = await fetch('./config.json', { cache: 'no-store' });
+                if (res.ok) {
+                    const json = await res.json();
+                    cfg = mergeConfig(cfg, json);
+                }
+            } catch (e) {
+                // Si no existe o falla, no rompemos.
+                console.warn('No se pudo cargar config.json, usando defaults.', e);
+            }
+
+            // 3) Overrides por querystring (última palabra)
+            cfg = applyQueryConfig(cfg);
+
+            return cfg;
+        }
+
+        const configReady = loadConfig().then((cfg) => {
+            APP_CONFIG = cfg;
+            return cfg;
+        });
+
+        // =========================
+        // Persistencia de sesión
+        // =========================
+        function storageKey() {
+            return APP_CONFIG.storageKey || DEFAULT_CONFIG.storageKey;
+        }
+
+        function nowMs() {
+            return Date.now();
+        }
+
+        function loadStoredState() {
+            try {
+                const raw = localStorage.getItem(storageKey());
+                if (!raw) return null;
+                const parsed = safeJsonParse(raw);
+                if (!parsed) return null;
+                if (parsed.expiresAt && typeof parsed.expiresAt === 'number' && parsed.expiresAt < nowMs()) {
+                    localStorage.removeItem(storageKey());
+                    return null;
+                }
+                return parsed;
+            } catch {
+                return null;
+            }
+        }
+
+        function saveStoredState(next) {
+            try {
+                localStorage.setItem(storageKey(), JSON.stringify(next));
+            } catch (e) {
+                console.warn('No se pudo guardar estado en localStorage:', e);
+            }
+        }
+
+        function clearStoredState() {
+            try { localStorage.removeItem(storageKey()); } catch {}
+        }
+
+        function normalizeState(state) {
+            const ttl = (APP_CONFIG.sessionTtlMs ?? DEFAULT_CONFIG.sessionTtlMs);
+            const base = {
+                version: 1,
+                createdAt: state?.createdAt ?? nowMs(),
+                updatedAt: nowMs(),
+                expiresAt: nowMs() + ttl,
+                usuarioId: state?.usuarioId ?? '',
+                nombreUsuario: state?.nombreUsuario ?? '',
+                vozActiva: state?.vozActiva ?? true,
+                ultimoDestino: state?.ultimoDestino ?? '',
+                inChat: state?.inChat ?? false,
+                entryCount: typeof state?.entryCount === 'number' ? state.entryCount : 0,
+                sesiones: state?.sesiones ?? {}, // { socrates: { sesionId, mensajes }, viajero: { ... } }
+            };
+            return base;
+        }
+
+        function getSessionForDestino(destino) {
+            const state = loadStoredState();
+            const s = state?.sesiones?.[destino];
+            if (!s || typeof s !== 'object') return { sesionId: null, mensajes: [] };
+            return {
+                sesionId: typeof s.sesionId === 'string' ? s.sesionId : null,
+                mensajes: Array.isArray(s.mensajes) ? s.mensajes : []
+            };
+        }
+
+        function upsertSessionForDestino(destino, patch) {
+            const prev = normalizeState(loadStoredState());
+            prev.sesiones = prev.sesiones || {};
+            const current = prev.sesiones[destino] && typeof prev.sesiones[destino] === 'object'
+                ? prev.sesiones[destino]
+                : { sesionId: null, mensajes: [] };
+
+            const next = {
+                ...current,
+                ...patch
+            };
+
+            // Evitar crecimiento infinito del storage
+            if (Array.isArray(next.mensajes) && next.mensajes.length > 200) {
+                next.mensajes = next.mensajes.slice(next.mensajes.length - 200);
+            }
+
+            prev.sesiones[destino] = next;
+            prev.updatedAt = nowMs();
+            saveStoredState(prev);
+        }
+
+        function appendMensaje(destino, role, text) {
+            if (!destino) return;
+            const { mensajes } = getSessionForDestino(destino);
+            const next = mensajes.concat([{ role, text, ts: nowMs() }]);
+            upsertSessionForDestino(destino, { mensajes: next });
+        }
+
+        function getReceptionSession() {
+            return getSessionForDestino('recepcion');
+        }
+
+        function setReceptionSessionId(id) {
+            if (!id) return;
+            upsertSessionForDestino('recepcion', { sesionId: id });
+        }
+
+        function buildRecepcionPayload() {
+            const st = normalizeState(loadStoredState());
+            const visitaNumero = (st.entryCount || 0) + 1;
+            const hasSocrates = !!getSessionForDestino('socrates').sesionId;
+            const hasViajero = !!getSessionForDestino('viajero').sesionId;
+            const contexto = (st.entryCount || 0) === 0 ? 'primera_vez' : 'reingreso';
+
+            return {
+                destino: 'recepcion',
+                usuario_id: usuarioId || null,
+                nombre: nombreUsuario,
+                contexto,
+                visita_numero: visitaNumero,
+                ultimo_destino: st.ultimoDestino || null,
+                tiene_sesion_socrates: hasSocrates,
+                tiene_sesion_viajero: hasViajero,
+                in_chat_previo: !!st.inChat
+            };
+        }
+
+        async function llamarRecepcionYMostrarLobby({ auto = false } = {}) {
+            await configReady;
+
+            const btn = document.getElementById('btnEntrar');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = auto ? 'Reingresando...' : 'Entrando...';
+            }
+            errorEntrada.classList.add('hidden');
+
+            const payload = buildRecepcionPayload();
+            const recepSession = getReceptionSession();
+            // Garantizar sesion_id para recepción (aunque el backend no lo devuelva todavía)
+            if (!recepSession.sesionId) {
+                setReceptionSessionId(generateUuid());
+            }
+            const recepSession2 = getReceptionSession();
+            if (recepSession2.sesionId) payload.sesion_id = recepSession2.sesionId;
+
+            const response = await fetch(APP_CONFIG.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('Error de servidor');
+
+            const data = await response.json();
+            if (data.sesion_id) setReceptionSessionId(data.sesion_id);
+            if (!data.respuesta) throw new Error('Sin respuesta');
+
+            // Persistir conteo de entradas sólo en éxito
+            const st = normalizeState(loadStoredState());
+            st.usuarioId = usuarioId;
+            st.nombreUsuario = nombreUsuario;
+            st.entryCount = (st.entryCount || 0) + 1;
+            st.inChat = false;
+            st.updatedAt = nowMs();
+            saveStoredState(st);
+
+            const textoSofia = data.respuesta;
+            document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+            entrada.classList.add('hidden');
+            lobby.classList.remove('hidden');
+            lobby.style.display = 'block';
+
+            hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
+        }
+
         // Estado
+        let usuarioId = '';
         let nombreUsuario = '';
         let destinoActual = '';
         let sesionId = null;
@@ -482,6 +766,12 @@
             vozActiva = !vozActiva;
             voiceToggle.textContent = vozActiva ? '🔊 Voz ON' : '🔇 Voz OFF';
             voiceToggle.classList.toggle('active', vozActiva);
+
+            // Persistir preferencia
+            const prev = normalizeState(loadStoredState());
+            prev.vozActiva = vozActiva;
+            prev.updatedAt = nowMs();
+            saveStoredState(prev);
             
             if (!vozActiva && audioActual) {
                 audioActual.pause();
@@ -491,12 +781,13 @@
 
         // Text to Speech via n8n + ElevenLabs (no bloquea UI)
         async function hablar(texto, personaje) {
+            await configReady;
             if (!vozActiva) return;
             
-            const voiceId = VOICES[personaje] || VOICES.socrates;
+            const voiceId = (APP_CONFIG.voices && APP_CONFIG.voices[personaje]) || (APP_CONFIG.voices && APP_CONFIG.voices.socrates);
             
             try {
-                const response = await fetch('https://abuelomatias.app.n8n.cloud/webhook/voz', {
+                const response = await fetch(APP_CONFIG.ttsWebhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -534,56 +825,47 @@
         });
 
         async function entrar() {
+            await configReady;
             nombreUsuario = document.getElementById('inputNombre').value.trim();
             if (!nombreUsuario) return;
 
-            const btn = document.getElementById('btnEntrar');
-            btn.disabled = true;
-            btn.textContent = 'Entrando...';
-            errorEntrada.classList.add('hidden');
-
             try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        destino: 'recepcion',
-                        nombre: nombreUsuario,
-                        contexto: 'primera_vez'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error de servidor');
+                // Si cambia el nombre respecto a lo persistido, reseteamos las sesiones (para no mezclar historias)
+                const prev = normalizeState(loadStoredState());
+                const prevUsuarioId = (prev.usuarioId || '').trim();
+                if (prevUsuarioId && usuarioId && prevUsuarioId !== usuarioId) {
+                    const voz = prev.vozActiva ?? true;
+                    clearStoredState();
+                    saveStoredState(normalizeState({ usuarioId, nombreUsuario, vozActiva: voz, entryCount: 0 }));
                 }
-
-                const data = await response.json();
-                
-                if (data.respuesta) {
-                    const textoSofia = data.respuesta;
-                    
-                    // Mostrar texto primero
-                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
-                    entrada.classList.add('hidden');
-                    lobby.classList.remove('hidden');
-                    lobby.style.display = 'block';
-                    
-                    // Reproducir voz (no bloquea)
-                    hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
+                const nombrePrevio = (prev.nombreUsuario || '').trim();
+                if (nombrePrevio && nombrePrevio !== nombreUsuario) {
+                    const voz = prev.vozActiva ?? true;
+                    clearStoredState();
+                    saveStoredState(normalizeState({ usuarioId, nombreUsuario, vozActiva: voz, entryCount: 0 }));
                 } else {
-                    throw new Error('Sin respuesta');
+                    prev.usuarioId = usuarioId;
+                    prev.nombreUsuario = nombreUsuario;
+                    prev.updatedAt = nowMs();
+                    saveStoredState(prev);
                 }
+
+                await llamarRecepcionYMostrarLobby({ auto: false });
 
             } catch (error) {
                 console.error('Error:', error);
                 errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
                 errorEntrada.classList.remove('hidden');
-                btn.disabled = false;
-                btn.textContent = 'Entrar';
+                const btn = document.getElementById('btnEntrar');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                }
             }
         }
 
         async function elegirDestino(destino) {
+            await configReady;
             destinoActual = destino;
             
             if (destino === 'socrates') {
@@ -598,28 +880,69 @@
             chat.style.display = 'flex';
             btnVolver.classList.remove('hidden');
 
-            document.getElementById('chatMensajes').innerHTML = '';
+            // Restaurar historial local (si existe) para continuidad en recarga
+            const prevSession = getSessionForDestino(destino);
+            sesionId = prevSession.sesionId;
+            const container = document.getElementById('chatMensajes');
+            container.innerHTML = '';
+            if (prevSession.mensajes.length) {
+                for (const m of prevSession.mensajes) {
+                    if (!m || typeof m !== 'object') continue;
+                    if (m.role === 'user') agregarMensajeUsuario(m.text || '');
+                    else agregarMensajePersonaje(m.text || '');
+                }
+            }
+
+            // Persistir navegación actual
+            const st = normalizeState(loadStoredState());
+            st.nombreUsuario = nombreUsuario;
+            st.ultimoDestino = destino;
+            st.inChat = true;
+            st.updatedAt = nowMs();
+            saveStoredState(st);
+
+            // Si ya hay sesión + historial, reanudamos sin “boot message”
+            const hasHistory = prevSession.mensajes.length > 0;
+            if (sesionId && hasHistory) {
+                const input = document.getElementById('chatInput');
+                if (input) input.focus();
+                return;
+            }
+
             agregarMensajeLoading();
 
             try {
                 let body;
                 
+                // Garantizar sesion_id por destino (clave para continuidad sin mezclar usuarios)
+                if (!sesionId) {
+                    sesionId = generateUuid();
+                    upsertSessionForDestino(destino, { sesionId });
+                }
+
                 if (destino === 'socrates') {
                     body = {
                         destino: 'socrates',
                         accion: 'libre',
+                        usuario_id: usuarioId || null,
                         nombre: nombreUsuario,
                         mensaje: 'Hola, acabo de entrar'
                     };
                 } else {
                     body = {
                         destino: 'viajero',
+                        usuario_id: usuarioId || null,
                         nombre: nombreUsuario,
                         mensaje: 'Hola, acabo de entrar'
                     };
                 }
 
-                const response = await fetch(WEBHOOK_URL, {
+                // Si tenemos sesionId previa para este destino, la reusamos para continuidad real del backend
+                if (sesionId) {
+                    body.sesion_id = sesionId;
+                }
+
+                const response = await fetch(APP_CONFIG.webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -629,6 +952,7 @@
                 
                 if (data.sesion_id) {
                     sesionId = data.sesion_id;
+                    upsertSessionForDestino(destino, { sesionId });
                 }
                 
                 const respuestaTexto = data.respuesta || 'Bienvenido.';
@@ -636,6 +960,7 @@
                 // Mostrar texto primero
                 quitarMensajeLoading();
                 agregarMensajePersonaje(respuestaTexto);
+                appendMensaje(destino, 'assistant', respuestaTexto);
                 
                 // Reproducir voz (no bloquea)
                 hablar(respuestaTexto.replace(/\[...\]/g, ''), destino === 'socrates' ? 'socrates' : 'viajero');
@@ -644,10 +969,12 @@
                 console.error('Error:', error);
                 quitarMensajeLoading();
                 agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+                appendMensaje(destino, 'assistant', 'Disculpe, hubo un problema de conexión.');
             }
         }
 
         async function enviarMensaje() {
+            await configReady;
             const input = document.getElementById('chatInput');
             const mensaje = input.value.trim();
             
@@ -657,13 +984,21 @@
             document.getElementById('btnEnviar').disabled = true;
             
             agregarMensajeUsuario(mensaje);
+            appendMensaje(destinoActual, 'user', mensaje);
             input.value = '';
 
             agregarMensajeLoading();
 
             try {
+                // Garantizar sesion_id por destino antes de enviar
+                if (!sesionId && destinoActual) {
+                    const prev = getSessionForDestino(destinoActual);
+                    sesionId = prev.sesionId || generateUuid();
+                    upsertSessionForDestino(destinoActual, { sesionId });
+                }
                 const body = {
                     destino: destinoActual,
+                    usuario_id: usuarioId || null,
                     nombre: nombreUsuario,
                     mensaje: mensaje
                 };
@@ -676,7 +1011,7 @@
                     body.sesion_id = sesionId;
                 }
 
-                const response = await fetch(WEBHOOK_URL, {
+                const response = await fetch(APP_CONFIG.webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -689,6 +1024,7 @@
                 // Mostrar texto primero
                 quitarMensajeLoading();
                 agregarMensajePersonaje(respuestaTexto);
+                appendMensaje(destinoActual, 'assistant', respuestaTexto);
                 
                 // Reproducir voz (no bloquea)
                 hablar(respuestaTexto.replace(/\[...\]/g, ''), destinoActual === 'socrates' ? 'socrates' : 'viajero');
@@ -697,6 +1033,7 @@
                 console.error('Error:', error);
                 quitarMensajeLoading();
                 agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
+                appendMensaje(destinoActual, 'assistant', 'Disculpe, hubo un problema de conexión.');
             }
 
             esperandoRespuesta = false;
@@ -760,7 +1097,147 @@
             chat.style.display = 'none';
             lobby.style.display = 'block';
             btnVolver.classList.add('hidden');
-            sesionId = null;
+
+            // Volver al lobby NO borra la sesión: continuidad es clave
+            const st = normalizeState(loadStoredState());
+            st.inChat = false;
+            st.updatedAt = nowMs();
+            saveStoredState(st);
+        }
+
+        // =========================
+        // Boot: restaurar estado UI
+        // =========================
+        (async function boot() {
+            await configReady;
+
+            // Import opcional desde hash (modo multi-navegador / multi-dispositivo)
+            // Formato: #dr=<base64url(JSON)>
+            function importFromHashIfAny() {
+                const hash = (window.location.hash || '').replace(/^#/, '');
+                if (!hash) return;
+                const m = hash.match(/(?:^|&)dr=([^&]+)/);
+                if (!m) return;
+                try {
+                    const b64url = decodeURIComponent(m[1]);
+                    const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+                    const padded = b64 + '==='.slice((b64.length + 3) % 4);
+                    const binary = atob(padded);
+                    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+                    const jsonText = new TextDecoder().decode(bytes);
+                    const imported = safeJsonParse(jsonText);
+                    if (imported && typeof imported === 'object') {
+                        const current = normalizeState(loadStoredState());
+                        const merged = normalizeState({
+                            ...current,
+                            nombreUsuario: imported.nombreUsuario ?? current.nombreUsuario,
+                            vozActiva: imported.vozActiva ?? current.vozActiva,
+                            ultimoDestino: imported.ultimoDestino ?? current.ultimoDestino,
+                            entryCount: typeof imported.entryCount === 'number' ? imported.entryCount : current.entryCount,
+                            sesiones: {
+                                ...(current.sesiones || {}),
+                                ...(imported.sesiones || {})
+                            }
+                        });
+                        saveStoredState(merged);
+                    }
+                } catch (e) {
+                    console.warn('Hash de continuidad inválido:', e);
+                } finally {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
+
+            importFromHashIfAny();
+
+            const st = normalizeState(loadStoredState());
+            usuarioId = st.usuarioId || '';
+            nombreUsuario = st.nombreUsuario || '';
+            vozActiva = (st.vozActiva ?? true);
+
+            // Permitir inyección por URL (ideal para auth externa)
+            // ?usuario_id=...&nombre=...
+            const url = new URL(window.location.href);
+            const qUsuarioId = url.searchParams.get('usuario_id') || url.searchParams.get('usuarioId');
+            const qNombre = url.searchParams.get('nombre') || url.searchParams.get('name');
+            if (qUsuarioId) usuarioId = qUsuarioId;
+            if (qNombre) nombreUsuario = qNombre;
+
+            // Pintar preferencia de voz
+            voiceToggle.textContent = vozActiva ? '🔊 Voz ON' : '🔇 Voz OFF';
+            voiceToggle.classList.toggle('active', vozActiva);
+
+            // Prellenar nombre si existe
+            const inputNombre = document.getElementById('inputNombre');
+            if (nombreUsuario) {
+                inputNombre.value = nombreUsuario;
+                document.getElementById('btnEntrar').disabled = false;
+            } else {
+                document.getElementById('btnEntrar').disabled = true;
+            }
+
+            // Persistir usuarioId/nombre si llegaron por URL
+            if (usuarioId || nombreUsuario) {
+                const next = normalizeState(loadStoredState());
+                if (usuarioId) next.usuarioId = usuarioId;
+                if (nombreUsuario) next.nombreUsuario = nombreUsuario;
+                next.updatedAt = nowMs();
+                saveStoredState(next);
+            }
+
+            // Requisito: SIEMPRE llamar a recepción (también reingresos).
+            // Si hay nombre guardado, reingresa automáticamente y muestra lobby.
+            if (nombreUsuario) {
+                try {
+                    await llamarRecepcionYMostrarLobby({ auto: true });
+                } catch (e) {
+                    // Si falla, dejamos la entrada visible con el nombre precargado
+                    entrada.classList.remove('hidden');
+                    lobby.classList.add('hidden');
+                    lobby.style.display = 'none';
+                    errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
+                    errorEntrada.classList.remove('hidden');
+                    const btn = document.getElementById('btnEntrar');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Entrar';
+                    }
+                }
+            }
+
+            // No auto-reabrimos chat: Sofía + lobby guían continuidad (pero el historial queda listo al elegir destino).
+        })();
+
+        // Export: enlace de continuidad (multi-navegador)
+        async function copiarEnlaceSesion() {
+            await configReady;
+            const st = normalizeState(loadStoredState());
+            const minimal = {
+                usuarioId: st.usuarioId || '',
+                nombreUsuario: st.nombreUsuario || '',
+                vozActiva: st.vozActiva ?? true,
+                ultimoDestino: st.ultimoDestino || '',
+                entryCount: st.entryCount || 0,
+                sesiones: {
+                    recepcion: { sesionId: getReceptionSession().sesionId || null },
+                    socrates: { sesionId: getSessionForDestino('socrates').sesionId || null },
+                    viajero: { sesionId: getSessionForDestino('viajero').sesionId || null }
+                }
+            };
+
+            const json = JSON.stringify(minimal);
+            const bytes = new TextEncoder().encode(json);
+            let binary = '';
+            for (const b of bytes) binary += String.fromCharCode(b);
+            const b64url = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+
+            const link = window.location.origin + window.location.pathname + window.location.search + '#dr=' + encodeURIComponent(b64url);
+
+            try {
+                await navigator.clipboard.writeText(link);
+            } catch {
+                window.prompt('Copie este enlace para continuar su sesión en otro navegador:', link);
+            }
         }
     </script>
 </body>
