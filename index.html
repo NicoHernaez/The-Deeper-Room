@@ -379,6 +379,28 @@
             border-color: #c9a962;
         }
 
+        /* Session link */
+        .session-link {
+            position: fixed;
+            top: 4.1rem;
+            right: 1.5rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #888888;
+            background: none;
+            border: 1px solid #444;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 3px;
+        }
+
+        .session-link:active {
+            border-color: #c9a962;
+            color: #c9a962;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -395,6 +417,7 @@
 <body>
     <button class="btn-volver hidden" onclick="volverAlLobby()">← Volver</button>
     <button class="voice-toggle active" onclick="toggleVoice()">🔊 Voz ON</button>
+    <button class="session-link" onclick="copiarEnlaceSesion()">🔗 Sesión</button>
 
     <div class="container">
         <!-- ENTRADA -->
@@ -587,6 +610,7 @@
                 vozActiva: state?.vozActiva ?? true,
                 ultimoDestino: state?.ultimoDestino ?? '',
                 inChat: state?.inChat ?? false,
+                entryCount: typeof state?.entryCount === 'number' ? state.entryCount : 0,
                 sesiones: state?.sesiones ?? {}, // { socrates: { sesionId, mensajes }, viajero: { ... } }
             };
             return base;
@@ -629,6 +653,77 @@
             const { mensajes } = getSessionForDestino(destino);
             const next = mensajes.concat([{ role, text, ts: nowMs() }]);
             upsertSessionForDestino(destino, { mensajes: next });
+        }
+
+        function getReceptionSession() {
+            return getSessionForDestino('recepcion');
+        }
+
+        function setReceptionSessionId(id) {
+            if (!id) return;
+            upsertSessionForDestino('recepcion', { sesionId: id });
+        }
+
+        function buildRecepcionPayload() {
+            const st = normalizeState(loadStoredState());
+            const visitaNumero = (st.entryCount || 0) + 1;
+            const hasSocrates = !!getSessionForDestino('socrates').sesionId;
+            const hasViajero = !!getSessionForDestino('viajero').sesionId;
+            const contexto = (st.entryCount || 0) === 0 ? 'primera_vez' : 'reingreso';
+
+            return {
+                destino: 'recepcion',
+                nombre: nombreUsuario,
+                contexto,
+                visita_numero: visitaNumero,
+                ultimo_destino: st.ultimoDestino || null,
+                tiene_sesion_socrates: hasSocrates,
+                tiene_sesion_viajero: hasViajero,
+                in_chat_previo: !!st.inChat
+            };
+        }
+
+        async function llamarRecepcionYMostrarLobby({ auto = false } = {}) {
+            await configReady;
+
+            const btn = document.getElementById('btnEntrar');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = auto ? 'Reingresando...' : 'Entrando...';
+            }
+            errorEntrada.classList.add('hidden');
+
+            const payload = buildRecepcionPayload();
+            const recepSession = getReceptionSession();
+            if (recepSession.sesionId) payload.sesion_id = recepSession.sesionId;
+
+            const response = await fetch(APP_CONFIG.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('Error de servidor');
+
+            const data = await response.json();
+            if (data.sesion_id) setReceptionSessionId(data.sesion_id);
+            if (!data.respuesta) throw new Error('Sin respuesta');
+
+            // Persistir conteo de entradas sólo en éxito
+            const st = normalizeState(loadStoredState());
+            st.nombreUsuario = nombreUsuario;
+            st.entryCount = (st.entryCount || 0) + 1;
+            st.inChat = false;
+            st.updatedAt = nowMs();
+            saveStoredState(st);
+
+            const textoSofia = data.respuesta;
+            document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+            entrada.classList.add('hidden');
+            lobby.classList.remove('hidden');
+            lobby.style.display = 'block';
+
+            hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
         }
 
         // Estado
@@ -715,11 +810,6 @@
             nombreUsuario = document.getElementById('inputNombre').value.trim();
             if (!nombreUsuario) return;
 
-            const btn = document.getElementById('btnEntrar');
-            btn.disabled = true;
-            btn.textContent = 'Entrando...';
-            errorEntrada.classList.add('hidden');
-
             try {
                 // Si cambia el nombre respecto a lo persistido, reseteamos las sesiones (para no mezclar historias)
                 const prev = normalizeState(loadStoredState());
@@ -727,57 +817,24 @@
                 if (nombrePrevio && nombrePrevio !== nombreUsuario) {
                     const voz = prev.vozActiva ?? true;
                     clearStoredState();
-                    saveStoredState(normalizeState({ nombreUsuario, vozActiva: voz }));
+                    saveStoredState(normalizeState({ nombreUsuario, vozActiva: voz, entryCount: 0 }));
                 } else {
                     prev.nombreUsuario = nombreUsuario;
                     prev.updatedAt = nowMs();
                     saveStoredState(prev);
                 }
 
-                const response = await fetch(APP_CONFIG.webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        destino: 'recepcion',
-                        nombre: nombreUsuario,
-                        contexto: 'primera_vez'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error de servidor');
-                }
-
-                const data = await response.json();
-                
-                if (data.respuesta) {
-                    const textoSofia = data.respuesta;
-                    
-                    // Mostrar texto primero
-                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
-                    entrada.classList.add('hidden');
-                    lobby.classList.remove('hidden');
-                    lobby.style.display = 'block';
-
-                    // Persistir navegación
-                    const st = normalizeState(loadStoredState());
-                    st.nombreUsuario = nombreUsuario;
-                    st.inChat = false;
-                    st.updatedAt = nowMs();
-                    saveStoredState(st);
-                    
-                    // Reproducir voz (no bloquea)
-                    hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
-                } else {
-                    throw new Error('Sin respuesta');
-                }
+                await llamarRecepcionYMostrarLobby({ auto: false });
 
             } catch (error) {
                 console.error('Error:', error);
                 errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
                 errorEntrada.classList.remove('hidden');
-                btn.disabled = false;
-                btn.textContent = 'Entrar';
+                const btn = document.getElementById('btnEntrar');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                }
             }
         }
 
@@ -1013,6 +1070,45 @@
         (async function boot() {
             await configReady;
 
+            // Import opcional desde hash (modo multi-navegador / multi-dispositivo)
+            // Formato: #dr=<base64url(JSON)>
+            function importFromHashIfAny() {
+                const hash = (window.location.hash || '').replace(/^#/, '');
+                if (!hash) return;
+                const m = hash.match(/(?:^|&)dr=([^&]+)/);
+                if (!m) return;
+                try {
+                    const b64url = decodeURIComponent(m[1]);
+                    const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+                    const padded = b64 + '==='.slice((b64.length + 3) % 4);
+                    const binary = atob(padded);
+                    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+                    const jsonText = new TextDecoder().decode(bytes);
+                    const imported = safeJsonParse(jsonText);
+                    if (imported && typeof imported === 'object') {
+                        const current = normalizeState(loadStoredState());
+                        const merged = normalizeState({
+                            ...current,
+                            nombreUsuario: imported.nombreUsuario ?? current.nombreUsuario,
+                            vozActiva: imported.vozActiva ?? current.vozActiva,
+                            ultimoDestino: imported.ultimoDestino ?? current.ultimoDestino,
+                            entryCount: typeof imported.entryCount === 'number' ? imported.entryCount : current.entryCount,
+                            sesiones: {
+                                ...(current.sesiones || {}),
+                                ...(imported.sesiones || {})
+                            }
+                        });
+                        saveStoredState(merged);
+                    }
+                } catch (e) {
+                    console.warn('Hash de continuidad inválido:', e);
+                } finally {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
+
+            importFromHashIfAny();
+
             const st = normalizeState(loadStoredState());
             nombreUsuario = st.nombreUsuario || '';
             vozActiva = (st.vozActiva ?? true);
@@ -1030,19 +1126,59 @@
                 document.getElementById('btnEntrar').disabled = true;
             }
 
-            // Si ya hay nombre guardado, saltamos la entrada y mostramos lobby
+            // Requisito: SIEMPRE llamar a recepción (también reingresos).
+            // Si hay nombre guardado, reingresa automáticamente y muestra lobby.
             if (nombreUsuario) {
-                entrada.classList.add('hidden');
-                lobby.classList.remove('hidden');
-                lobby.style.display = 'block';
+                try {
+                    await llamarRecepcionYMostrarLobby({ auto: true });
+                } catch (e) {
+                    // Si falla, dejamos la entrada visible con el nombre precargado
+                    entrada.classList.remove('hidden');
+                    lobby.classList.add('hidden');
+                    lobby.style.display = 'none';
+                    errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
+                    errorEntrada.classList.remove('hidden');
+                    const btn = document.getElementById('btnEntrar');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Entrar';
+                    }
+                }
             }
 
-            // Si el usuario estaba en chat, reabrimos el último destino con historial local
-            if (nombreUsuario && st.inChat && st.ultimoDestino) {
-                // Esto re-renderiza historial y reusa sesion_id si existe
-                elegirDestino(st.ultimoDestino);
-            }
+            // No auto-reabrimos chat: Sofía + lobby guían continuidad (pero el historial queda listo al elegir destino).
         })();
+
+        // Export: enlace de continuidad (multi-navegador)
+        async function copiarEnlaceSesion() {
+            await configReady;
+            const st = normalizeState(loadStoredState());
+            const minimal = {
+                nombreUsuario: st.nombreUsuario || '',
+                vozActiva: st.vozActiva ?? true,
+                ultimoDestino: st.ultimoDestino || '',
+                entryCount: st.entryCount || 0,
+                sesiones: {
+                    recepcion: { sesionId: getReceptionSession().sesionId || null },
+                    socrates: { sesionId: getSessionForDestino('socrates').sesionId || null },
+                    viajero: { sesionId: getSessionForDestino('viajero').sesionId || null }
+                }
+            };
+
+            const json = JSON.stringify(minimal);
+            const bytes = new TextEncoder().encode(json);
+            let binary = '';
+            for (const b of bytes) binary += String.fromCharCode(b);
+            const b64url = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+
+            const link = window.location.origin + window.location.pathname + window.location.search + '#dr=' + encodeURIComponent(b64url);
+
+            try {
+                await navigator.clipboard.writeText(link);
+            } catch {
+                window.prompt('Copie este enlace para continuar su sesión en otro navegador:', link);
+            }
+        }
     </script>
 </body>
 </html>
