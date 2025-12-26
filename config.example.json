@@ -1,0 +1,11 @@
+{
+  "webhookUrl": "https://abuelomatias.app.n8n.cloud/webhook/deeper-room",
+  "ttsWebhookUrl": "https://abuelomatias.app.n8n.cloud/webhook/voz",
+  "voices": {
+    "sofia": "KODfcDcuOf5M4axjGlMx",
+    "socrates": "ki6kmf0TLJkBQr3Vt9dt",
+    "viajero": "ML5mQsk0B3e4gEH6KBKz"
+  },
+  "storageKey": "deeper-room.v1",
+  "sessionTtlMs": 1209600000
+}
