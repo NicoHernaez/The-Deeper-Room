@@ -496,6 +496,16 @@
 
         let APP_CONFIG = { ...DEFAULT_CONFIG };
 
+        function generateUuid() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            // Fallback (suficiente para ids locales, no criptográfico)
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         function safeJsonParse(text) {
             try { return JSON.parse(text); } catch { return null; }
         }
@@ -697,7 +707,12 @@
 
             const payload = buildRecepcionPayload();
             const recepSession = getReceptionSession();
-            if (recepSession.sesionId) payload.sesion_id = recepSession.sesionId;
+            // Garantizar sesion_id para recepción (aunque el backend no lo devuelva todavía)
+            if (!recepSession.sesionId) {
+                setReceptionSessionId(generateUuid());
+            }
+            const recepSession2 = getReceptionSession();
+            if (recepSession2.sesionId) payload.sesion_id = recepSession2.sesionId;
 
             const response = await fetch(APP_CONFIG.webhookUrl, {
                 method: 'POST',
@@ -899,6 +914,12 @@
             try {
                 let body;
                 
+                // Garantizar sesion_id por destino (clave para continuidad sin mezclar usuarios)
+                if (!sesionId) {
+                    sesionId = generateUuid();
+                    upsertSessionForDestino(destino, { sesionId });
+                }
+
                 if (destino === 'socrates') {
                     body = {
                         destino: 'socrates',
@@ -969,6 +990,12 @@
             agregarMensajeLoading();
 
             try {
+                // Garantizar sesion_id por destino antes de enviar
+                if (!sesionId && destinoActual) {
+                    const prev = getSessionForDestino(destinoActual);
+                    sesionId = prev.sesionId || generateUuid();
+                    upsertSessionForDestino(destinoActual, { sesionId });
+                }
                 const body = {
                     destino: destinoActual,
                     usuario_id: usuarioId || null,
