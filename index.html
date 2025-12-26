@@ -606,6 +606,7 @@
                 createdAt: state?.createdAt ?? nowMs(),
                 updatedAt: nowMs(),
                 expiresAt: nowMs() + ttl,
+                usuarioId: state?.usuarioId ?? '',
                 nombreUsuario: state?.nombreUsuario ?? '',
                 vozActiva: state?.vozActiva ?? true,
                 ultimoDestino: state?.ultimoDestino ?? '',
@@ -673,6 +674,7 @@
 
             return {
                 destino: 'recepcion',
+                usuario_id: usuarioId || null,
                 nombre: nombreUsuario,
                 contexto,
                 visita_numero: visitaNumero,
@@ -711,6 +713,7 @@
 
             // Persistir conteo de entradas sólo en éxito
             const st = normalizeState(loadStoredState());
+            st.usuarioId = usuarioId;
             st.nombreUsuario = nombreUsuario;
             st.entryCount = (st.entryCount || 0) + 1;
             st.inChat = false;
@@ -727,6 +730,7 @@
         }
 
         // Estado
+        let usuarioId = '';
         let nombreUsuario = '';
         let destinoActual = '';
         let sesionId = null;
@@ -813,12 +817,19 @@
             try {
                 // Si cambia el nombre respecto a lo persistido, reseteamos las sesiones (para no mezclar historias)
                 const prev = normalizeState(loadStoredState());
+                const prevUsuarioId = (prev.usuarioId || '').trim();
+                if (prevUsuarioId && usuarioId && prevUsuarioId !== usuarioId) {
+                    const voz = prev.vozActiva ?? true;
+                    clearStoredState();
+                    saveStoredState(normalizeState({ usuarioId, nombreUsuario, vozActiva: voz, entryCount: 0 }));
+                }
                 const nombrePrevio = (prev.nombreUsuario || '').trim();
                 if (nombrePrevio && nombrePrevio !== nombreUsuario) {
                     const voz = prev.vozActiva ?? true;
                     clearStoredState();
-                    saveStoredState(normalizeState({ nombreUsuario, vozActiva: voz, entryCount: 0 }));
+                    saveStoredState(normalizeState({ usuarioId, nombreUsuario, vozActiva: voz, entryCount: 0 }));
                 } else {
+                    prev.usuarioId = usuarioId;
                     prev.nombreUsuario = nombreUsuario;
                     prev.updatedAt = nowMs();
                     saveStoredState(prev);
@@ -892,12 +903,14 @@
                     body = {
                         destino: 'socrates',
                         accion: 'libre',
+                        usuario_id: usuarioId || null,
                         nombre: nombreUsuario,
                         mensaje: 'Hola, acabo de entrar'
                     };
                 } else {
                     body = {
                         destino: 'viajero',
+                        usuario_id: usuarioId || null,
                         nombre: nombreUsuario,
                         mensaje: 'Hola, acabo de entrar'
                     };
@@ -958,6 +971,7 @@
             try {
                 const body = {
                     destino: destinoActual,
+                    usuario_id: usuarioId || null,
                     nombre: nombreUsuario,
                     mensaje: mensaje
                 };
@@ -1110,8 +1124,17 @@
             importFromHashIfAny();
 
             const st = normalizeState(loadStoredState());
+            usuarioId = st.usuarioId || '';
             nombreUsuario = st.nombreUsuario || '';
             vozActiva = (st.vozActiva ?? true);
+
+            // Permitir inyección por URL (ideal para auth externa)
+            // ?usuario_id=...&nombre=...
+            const url = new URL(window.location.href);
+            const qUsuarioId = url.searchParams.get('usuario_id') || url.searchParams.get('usuarioId');
+            const qNombre = url.searchParams.get('nombre') || url.searchParams.get('name');
+            if (qUsuarioId) usuarioId = qUsuarioId;
+            if (qNombre) nombreUsuario = qNombre;
 
             // Pintar preferencia de voz
             voiceToggle.textContent = vozActiva ? '🔊 Voz ON' : '🔇 Voz OFF';
@@ -1124,6 +1147,15 @@
                 document.getElementById('btnEntrar').disabled = false;
             } else {
                 document.getElementById('btnEntrar').disabled = true;
+            }
+
+            // Persistir usuarioId/nombre si llegaron por URL
+            if (usuarioId || nombreUsuario) {
+                const next = normalizeState(loadStoredState());
+                if (usuarioId) next.usuarioId = usuarioId;
+                if (nombreUsuario) next.nombreUsuario = nombreUsuario;
+                next.updatedAt = nowMs();
+                saveStoredState(next);
             }
 
             // Requisito: SIEMPRE llamar a recepción (también reingresos).
@@ -1154,6 +1186,7 @@
             await configReady;
             const st = normalizeState(loadStoredState());
             const minimal = {
+                usuarioId: st.usuarioId || '',
                 nombreUsuario: st.nombreUsuario || '',
                 vozActiva: st.vozActiva ?? true,
                 ultimoDestino: st.ultimoDestino || '',
