@@ -8,11 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Raleway', Arial, sans-serif;
@@ -29,18 +25,10 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 600px;
-            width: 100%;
-            position: relative;
-        }
+        .container { max-width: 600px; width: 100%; position: relative; }
 
         /* ENTRADA */
-        #entrada {
-            text-align: center;
-            animation: fadeIn 1.5s ease-out;
-        }
-
+        #entrada { text-align: center; animation: fadeIn 1.5s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -64,9 +52,7 @@
             font-style: italic;
         }
 
-        .input-group {
-            margin-bottom: 2rem;
-        }
+        .input-group { margin-bottom: 2rem; }
 
         .input-group label {
             display: block;
@@ -92,14 +78,8 @@
             letter-spacing: 0.05em;
         }
 
-        .input-nombre:focus {
-            outline: none;
-            border-color: #c9a962;
-        }
-
-        .input-nombre::placeholder {
-            color: #666666;
-        }
+        .input-nombre:focus { outline: none; border-color: #c9a962; }
+        .input-nombre::placeholder { color: #666666; }
 
         .btn-entrar {
             margin-top: 1rem;
@@ -115,28 +95,25 @@
             cursor: pointer;
         }
 
-        .btn-entrar:active {
-            background-color: #c9a962;
-            color: #080808;
-        }
-
-        .btn-entrar:disabled {
-            opacity: 0.3;
-        }
+        .btn-entrar:active { background-color: #c9a962; color: #080808; }
+        .btn-entrar:disabled { opacity: 0.3; }
 
         /* LOBBY */
         #lobby {
             display: none;
-            animation: fadeIn 1s ease-out;
+            animation: fadeIn 0.8s ease-out;
         }
 
         .mensaje-sofia {
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 1.15rem;
+            font-weight: 300;
+            font-style: italic;
+            color: #e0e0e0;
             line-height: 1.9;
-            color: #ffffff;
-            margin-bottom: 2.5rem;
-            white-space: pre-line;
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 0 1rem;
         }
 
         .opciones {
@@ -146,143 +123,121 @@
         }
 
         .btn-opcion {
-            padding: 1.25rem 1.5rem;
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 1.1rem;
-            font-weight: 400;
+            padding: 1.5rem;
             background-color: #111111;
-            border: 1px solid #333333;
-            border-left: 3px solid #c9a962;
+            border: 1px solid #2a2a2a;
             color: #ffffff;
             cursor: pointer;
             text-align: left;
+            transition: border-color 0.3s ease;
         }
 
-        .btn-opcion:active {
-            background-color: #1a1a1a;
-        }
+        .btn-opcion:active { border-color: #c9a962; }
 
         .btn-opcion-titulo {
             display: block;
-            font-size: 1.2rem;
-            margin-bottom: 0.4rem;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
             color: #c9a962;
-            letter-spacing: 0.05em;
         }
 
         .btn-opcion-desc {
-            font-family: 'Raleway', Arial, sans-serif;
-            font-size: 0.8rem;
+            display: block;
+            font-size: 0.85rem;
+            color: #888888;
             font-weight: 300;
-            color: #aaaaaa;
-            line-height: 1.5;
         }
 
         /* CHAT */
         #chat {
             display: none;
             flex-direction: column;
-            height: 85vh;
-            max-height: 750px;
-            animation: fadeIn 1s ease-out;
+            height: 80vh;
+            max-height: 700px;
+            animation: fadeIn 0.5s ease-out;
         }
 
         .chat-header {
             text-align: center;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #333333;
+            padding: 1rem 0 1.5rem 0;
+            border-bottom: 1px solid #222222;
             margin-bottom: 1rem;
         }
 
         .chat-header-titulo {
             font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
+            font-weight: 300;
             color: #c9a962;
-            letter-spacing: 0.1em;
         }
 
         .chat-header-sub {
-            font-size: 0.7rem;
-            color: #888888;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: #666666;
             margin-top: 0.25rem;
         }
 
         .chat-mensajes {
             flex: 1;
             overflow-y: auto;
-            padding-right: 0.5rem;
-            margin-bottom: 1rem;
-            -webkit-overflow-scrolling: touch;
+            padding: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .mensaje {
-            margin-bottom: 1.25rem;
-            animation: mensajeFade 0.5s ease-out;
-        }
-
-        @keyframes mensajeFade {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            line-height: 1.7;
+            font-size: 0.95rem;
         }
 
         .mensaje-personaje {
+            align-self: flex-start;
+            background-color: #1a1a1a;
+            border-left: 2px solid #c9a962;
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 1.05rem;
-            line-height: 1.8;
-            color: #ffffff;
-            padding: 1rem;
-            background-color: #111111;
-            border-left: 2px solid #c9a962;
+            font-style: italic;
         }
 
         .mensaje-usuario {
-            font-family: 'Raleway', Arial, sans-serif;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #cccccc;
-            padding: 0.75rem 1rem;
-            background-color: transparent;
-            border-left: 2px solid #444444;
-            margin-left: 1rem;
+            align-self: flex-end;
+            background-color: #2a2a2a;
+            border-right: 2px solid #666666;
         }
 
         .chat-input-container {
             display: flex;
             gap: 0.75rem;
             padding-top: 1rem;
-            border-top: 1px solid #333333;
+            border-top: 1px solid #222222;
         }
 
         .chat-input {
             flex: 1;
-            padding: 0.9rem;
+            padding: 1rem;
             font-family: 'Raleway', Arial, sans-serif;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 300;
             background-color: #1a1a1a;
             border: 1px solid #333333;
-            border-radius: 0;
             color: #ffffff;
             resize: none;
-            min-height: 48px;
-            max-height: 100px;
+            min-height: 50px;
+            max-height: 120px;
         }
 
-        .chat-input:focus {
-            outline: none;
-            border-color: #c9a962;
-        }
-
-        .chat-input::placeholder {
-            color: #666666;
-        }
+        .chat-input:focus { outline: none; border-color: #c9a962; }
+        .chat-input::placeholder { color: #666666; }
 
         .btn-enviar {
-            padding: 0.9rem 1.25rem;
+            padding: 1rem 1.5rem;
             font-family: 'Raleway', Arial, sans-serif;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 400;
             letter-spacing: 0.1em;
             text-transform: uppercase;
@@ -293,103 +248,54 @@
             align-self: flex-end;
         }
 
-        .btn-enviar:disabled {
-            opacity: 0.3;
-        }
+        .btn-enviar:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Audio control */
-        .audio-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .btn-audio {
-            background: none;
-            border: 1px solid #555;
-            color: #c9a962;
-            padding: 0.3rem 0.6rem;
-            font-size: 0.7rem;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .btn-audio:hover {
-            background-color: #1a1a1a;
-        }
-
-        .btn-audio.playing {
-            background-color: #c9a962;
-            color: #080808;
-        }
-
-        /* Loading */
-        .loading {
+        .btn-volver {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            background-color: transparent;
+            border: 1px solid #444444;
             color: #888888;
-            font-style: italic;
+            cursor: pointer;
         }
+
+        .btn-volver:active { border-color: #c9a962; color: #c9a962; }
+
+        .voice-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            font-family: 'Raleway', Arial, sans-serif;
+            font-size: 0.75rem;
+            background-color: transparent;
+            border: 1px solid #444444;
+            color: #888888;
+            cursor: pointer;
+        }
+
+        .voice-toggle.active { border-color: #c9a962; color: #c9a962; }
+
+        .hidden { display: none !important; }
 
         .loading::after {
             content: '';
             animation: dots 1.5s infinite;
         }
-
         @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
         }
 
-        /* Volver */
-        .btn-volver {
-            position: fixed;
-            top: 1.5rem;
-            left: 1.5rem;
-            font-family: 'Raleway', Arial, sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #888888;
-            background: none;
-            border: none;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        /* Voice toggle */
-        .voice-toggle {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            font-family: 'Raleway', Arial, sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 0.05em;
-            color: #888888;
-            background: none;
-            border: 1px solid #444;
-            padding: 0.4rem 0.8rem;
-            cursor: pointer;
-            z-index: 10;
-            border-radius: 3px;
-        }
-
-        .voice-toggle.active {
-            color: #c9a962;
-            border-color: #c9a962;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Error */
-        .error-msg {
-            color: #ff6b6b;
-            font-size: 0.85rem;
-            margin-top: 1rem;
-            text-align: center;
-        }
+        .error-msg { color: #ff6b6b; font-size: 0.85rem; margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
@@ -401,12 +307,12 @@
         <div id="entrada">
             <h1 class="logo">The Deeper Room</h1>
             <p class="tagline">Un espacio para quienes todavía piensan profundamente</p>
-            
+
             <div class="input-group">
                 <label>Su nombre</label>
                 <input type="text" class="input-nombre" id="inputNombre" placeholder="Ingrese su nombre" autocomplete="off">
             </div>
-            
+
             <button class="btn-entrar" id="btnEntrar" onclick="entrar()">Entrar</button>
             <div id="errorEntrada" class="error-msg hidden"></div>
         </div>
@@ -414,13 +320,13 @@
         <!-- LOBBY -->
         <div id="lobby">
             <div class="mensaje-sofia" id="mensajeSofia"></div>
-            
+
             <div class="opciones">
                 <button class="btn-opcion" onclick="elegirDestino('socrates')">
                     <span class="btn-opcion-titulo">The Study</span>
                     <span class="btn-opcion-desc">Silencioso y reflexivo, acompañado por Sócrates</span>
                 </button>
-                
+
                 <button class="btn-opcion" onclick="elegirDestino('viajero')">
                     <span class="btn-opcion-titulo">The Gallery</span>
                     <span class="btn-opcion-desc">Donde el tiempo y los lugares despliegan sus relatos</span>
@@ -434,13 +340,13 @@
                 <div class="chat-header-titulo" id="chatTitulo">The Study</div>
                 <div class="chat-header-sub" id="chatSub">con Sócrates</div>
             </div>
-            
+
             <div class="chat-mensajes" id="chatMensajes"></div>
-            
+
             <div class="chat-input-container">
-                <textarea 
-                    class="chat-input" 
-                    id="chatInput" 
+                <textarea
+                    class="chat-input"
+                    id="chatInput"
                     placeholder="Escriba aquí..."
                     rows="1"
                     onkeydown="handleKeyDown(event)"
@@ -451,23 +357,81 @@
     </div>
 
     <script>
-        // Configuración
+        // =========================
+        // CONFIG
+        // =========================
         const WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/deeper-room';
-        
-        // Voice IDs
+        const VOZ_WEBHOOK_URL = 'https://abuelomatias.app.n8n.cloud/webhook/voz';
+
         const VOICES = {
             sofia: 'KODfcDcuOf5M4axjGlMx',
             socrates: 'ki6kmf0TLJkBQr3Vt9dt',
             viajero: 'ML5mQsk0B3e4gEH6KBKz'
         };
 
-        // Estado
-        let nombreUsuario = '';
+        const STORAGE_KEY = 'deeper-room-v3';
+
+        // =========================
+        // UTILIDADES UUID
+        // =========================
+        function generarUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // =========================
+        // PERSISTENCIA LOCAL
+        // =========================
+        function cargarEstado() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    return {
+                        usuario_id: data.usuario_id || generarUUID(),
+                        nombre: data.nombre || '',
+                        sesionIds: data.sesionIds || { recepcion: null, socrates: null, viajero: null }
+                    };
+                }
+            } catch(e) {}
+            
+            return {
+                usuario_id: generarUUID(),
+                nombre: '',
+                sesionIds: { recepcion: null, socrates: null, viajero: null }
+            };
+        }
+
+        function guardarEstado() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    usuario_id: estado.usuario_id,
+                    nombre: nombreUsuario,
+                    sesionIds: estado.sesionIds
+                }));
+            } catch(e) {}
+        }
+
+        // =========================
+        // ESTADO
+        // =========================
+        const estado = cargarEstado();
+        let nombreUsuario = estado.nombre;
         let destinoActual = '';
-        let sesionId = null;
         let esperandoRespuesta = false;
         let vozActiva = true;
         let audioActual = null;
+
+        // Si ya tiene nombre guardado, pre-llenar
+        if (nombreUsuario) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('inputNombre').value = nombreUsuario;
+                document.getElementById('btnEntrar').disabled = false;
+            });
+        }
 
         // Elementos
         const entrada = document.getElementById('entrada');
@@ -477,49 +441,61 @@
         const errorEntrada = document.getElementById('errorEntrada');
         const voiceToggle = document.querySelector('.voice-toggle');
 
-        // Toggle de voz
+        // =========================
+        // UTILIDADES
+        // =========================
         function toggleVoice() {
             vozActiva = !vozActiva;
             voiceToggle.textContent = vozActiva ? '🔊 Voz ON' : '🔇 Voz OFF';
             voiceToggle.classList.toggle('active', vozActiva);
-            
+
             if (!vozActiva && audioActual) {
                 audioActual.pause();
                 audioActual = null;
             }
         }
 
-        // Text to Speech via n8n + ElevenLabs (no bloquea UI)
+        function detenerAudio() {
+            if (audioActual) {
+                try { audioActual.pause(); } catch(e) {}
+                audioActual = null;
+            }
+        }
+
+        function limpiarParaVoz(texto, maxLen) {
+            return (texto || '')
+                .replace(/\[...\]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, maxLen);
+        }
+
+        // Text to Speech via n8n + ElevenLabs
         async function hablar(texto, personaje) {
             if (!vozActiva) return;
-            
+
             const voiceId = VOICES[personaje] || VOICES.socrates;
-            
+            const limpio = limpiarParaVoz(texto, personaje === 'sofia' ? 600 : 900);
+            if (!limpio) return;
+
             try {
-                const response = await fetch('https://abuelomatias.app.n8n.cloud/webhook/voz', {
+                detenerAudio();
+
+                const response = await fetch(VOZ_WEBHOOK_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: texto,
-                        voice_id: voiceId
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: limpio, voice_id: voiceId })
                 });
 
-                if (response.ok) {
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    
-                    if (audioActual) {
-                        audioActual.pause();
-                    }
-                    
-                    audioActual = new Audio(audioUrl);
-                    audioActual.play();
-                }
+                if (!response.ok) return;
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                audioActual = new Audio(audioUrl);
+                audioActual.play().catch(() => {});
             } catch (error) {
-                console.error('Error de voz:', error);
+                // silencioso
             }
         }
 
@@ -533,6 +509,9 @@
             errorEntrada.classList.add('hidden');
         });
 
+        // =========================
+        // ENTRAR (Recepción)
+        // =========================
         async function entrar() {
             nombreUsuario = document.getElementById('inputNombre').value.trim();
             if (!nombreUsuario) return;
@@ -543,49 +522,59 @@
             errorEntrada.classList.add('hidden');
 
             try {
+                const body = {
+                    destino: 'recepcion',
+                    usuario_id: estado.usuario_id,
+                    nombre: nombreUsuario,
+                    mensaje: 'Hola, acabo de llegar'
+                };
+
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        destino: 'recepcion',
-                        nombre: nombreUsuario,
-                        contexto: 'primera_vez'
-                    })
+                    body: JSON.stringify(body)
                 });
 
-                if (!response.ok) {
-                    throw new Error('Error de servidor');
+                if (!response.ok) throw new Error('Error de servidor');
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch(e) {
+                    throw new Error('Respuesta inválida del servidor');
                 }
 
-                const data = await response.json();
-                
-                if (data.respuesta) {
-                    const textoSofia = data.respuesta;
-                    
-                    // Mostrar texto primero
-                    document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
-                    entrada.classList.add('hidden');
-                    lobby.classList.remove('hidden');
-                    lobby.style.display = 'block';
-                    
-                    // Reproducir voz (no bloquea)
-                    hablar(textoSofia.replace(/\[...\]/g, ''), 'sofia');
-                } else {
-                    throw new Error('Sin respuesta');
-                }
+                // Guardar estado
+                guardarEstado();
+
+                const textoSofia = data.respuesta || `Bienvenido, ${nombreUsuario}.\nElija una puerta.`;
+
+                // Mostrar texto
+                document.getElementById('mensajeSofia').innerHTML = formatearMensaje(textoSofia);
+                entrada.classList.add('hidden');
+                lobby.classList.remove('hidden');
+                lobby.style.display = 'block';
+
+                // Voz
+                hablar(textoSofia, 'sofia');
 
             } catch (error) {
-                console.error('Error:', error);
                 errorEntrada.textContent = 'No se pudo conectar. Verifique que el servicio esté activo.';
                 errorEntrada.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            } finally {
                 btn.disabled = false;
                 btn.textContent = 'Entrar';
             }
         }
 
+        // =========================
+        // ELEGIR DESTINO (Puertas)
+        // =========================
         async function elegirDestino(destino) {
             destinoActual = destino;
-            
+
             if (destino === 'socrates') {
                 document.getElementById('chatTitulo').textContent = 'The Study';
                 document.getElementById('chatSub').textContent = 'con Sócrates';
@@ -602,22 +591,21 @@
             agregarMensajeLoading();
 
             try {
-                let body;
-                
-                if (destino === 'socrates') {
-                    body = {
-                        destino: 'socrates',
-                        accion: 'libre',
-                        nombre: nombreUsuario,
-                        mensaje: 'Hola, acabo de entrar'
-                    };
-                } else {
-                    body = {
-                        destino: 'viajero',
-                        nombre: nombreUsuario,
-                        mensaje: 'Hola, acabo de entrar'
-                    };
+                // Generar sesion_id si no existe para este destino
+                if (!estado.sesionIds[destino]) {
+                    estado.sesionIds[destino] = generarUUID();
+                    guardarEstado();
                 }
+
+                let body = {
+                    destino: destino,
+                    usuario_id: estado.usuario_id,
+                    sesion_id: estado.sesionIds[destino],
+                    nombre: nombreUsuario,
+                    mensaje: 'Hola, acabo de entrar'
+                };
+
+                if (destino === 'socrates') body.accion = 'libre';
 
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
@@ -625,37 +613,37 @@
                     body: JSON.stringify(body)
                 });
 
-                const data = await response.json();
-                
-                if (data.sesion_id) {
-                    sesionId = data.sesion_id;
+                let data;
+                try {
+                    data = await response.json();
+                } catch(e) {
+                    throw new Error('Respuesta inválida');
                 }
-                
+
                 const respuestaTexto = data.respuesta || 'Bienvenido.';
-                
-                // Mostrar texto primero
                 quitarMensajeLoading();
                 agregarMensajePersonaje(respuestaTexto);
-                
-                // Reproducir voz (no bloquea)
-                hablar(respuestaTexto.replace(/\[...\]/g, ''), destino === 'socrates' ? 'socrates' : 'viajero');
+
+                hablar(respuestaTexto, destino === 'socrates' ? 'socrates' : 'viajero');
 
             } catch (error) {
-                console.error('Error:', error);
                 quitarMensajeLoading();
                 agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
             }
         }
 
+        // =========================
+        // ENVIAR MENSAJE
+        // =========================
         async function enviarMensaje() {
             const input = document.getElementById('chatInput');
             const mensaje = input.value.trim();
-            
+
             if (!mensaje || esperandoRespuesta) return;
 
             esperandoRespuesta = true;
             document.getElementById('btnEnviar').disabled = true;
-            
+
             agregarMensajeUsuario(mensaje);
             input.value = '';
 
@@ -664,17 +652,13 @@
             try {
                 const body = {
                     destino: destinoActual,
+                    usuario_id: estado.usuario_id,
+                    sesion_id: estado.sesionIds[destinoActual],
                     nombre: nombreUsuario,
                     mensaje: mensaje
                 };
 
-                if (destinoActual === 'socrates') {
-                    body.accion = 'libre';
-                }
-
-                if (sesionId) {
-                    body.sesion_id = sesionId;
-                }
+                if (destinoActual === 'socrates') body.accion = 'libre';
 
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
@@ -682,19 +666,20 @@
                     body: JSON.stringify(body)
                 });
 
-                const data = await response.json();
-                
+                let data;
+                try {
+                    data = await response.json();
+                } catch(e) {
+                    throw new Error('Respuesta inválida');
+                }
+
                 const respuestaTexto = data.respuesta || 'Disculpe, no pude procesar su mensaje.';
-                
-                // Mostrar texto primero
                 quitarMensajeLoading();
                 agregarMensajePersonaje(respuestaTexto);
-                
-                // Reproducir voz (no bloquea)
-                hablar(respuestaTexto.replace(/\[...\]/g, ''), destinoActual === 'socrates' ? 'socrates' : 'viajero');
+
+                hablar(respuestaTexto, destinoActual === 'socrates' ? 'socrates' : 'viajero');
 
             } catch (error) {
-                console.error('Error:', error);
                 quitarMensajeLoading();
                 agregarMensajePersonaje('Disculpe, hubo un problema de conexión.');
             }
@@ -753,14 +738,10 @@
         }
 
         function volverAlLobby() {
-            if (audioActual) {
-                audioActual.pause();
-                audioActual = null;
-            }
+            detenerAudio();
             chat.style.display = 'none';
             lobby.style.display = 'block';
             btnVolver.classList.add('hidden');
-            sesionId = null;
         }
     </script>
 </body>
